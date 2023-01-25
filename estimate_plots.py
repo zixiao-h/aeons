@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from lm import live_data, logL_model, global_live_lm, estimate_iterations, generate_theta0
+from lm_full import live_data, logL_model, global_live_lm, estimate_iterations, generate_theta0
 
 def plot_estimates(iterations, d_estimates, sigma_estimates, **kwargs):
     """Plots d, sigma against iterations"""
