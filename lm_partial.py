@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import least_squares
-from lm import live_data
+from lm_full import live_data
 
 
 def sigma_squared_analytic(d, X_i, logL_i):
