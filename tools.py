@@ -18,7 +18,8 @@ def pickle_in(filename):
 
 def params_at_iterations(samples, iterations_array, estimation_method):
     """Simple loop running an estimation method for a given list of iterations,
-    returns [logLmax_estimates, d_estimates, sigma_estimates]"""
+    returns [logLmax_estimates, d_estimates, sigma_estimates]
+    Estimation method must take arguments (samples, iteration)"""
     params_estimates = []
     for iteration in iterations_array:
         params_i = estimation_method(samples, iteration)
@@ -28,9 +29,12 @@ def params_at_iterations(samples, iterations_array, estimation_method):
 
 
 def plot_params(iterations, params_estimates, **kwargs):
-    """Plots d, sigma against iterations given a list of estimated parameters"""
+    """Plots d, sigma against iterations given a list of estimated parameters
+    kwargs allows setting of figsize, fontsize, lw"""
     d_estimates = params_estimates[:,1]
     sigma_estimates = params_estimates[:,2]
+
+    # Possible kwargs
     figsize = kwargs.get('figsize', (3,1))
     fontsize = kwargs.get('fontsize', 6)
     lw = kwargs.get('lw', 1)
