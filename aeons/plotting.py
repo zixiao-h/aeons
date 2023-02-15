@@ -4,7 +4,20 @@ from lm_full import live_data, logL_model, global_live_lm, estimate_iterations, 
 from ipywidgets import interact
 import ipywidgets as widgets
 
-def plot_estimates(iterations, d_estimates, sigma_estimates, **kwargs):
+def X_distribution(points, iteration, bins=100):
+    """Plots distribution of X in a set of samples"""
+    logX = points.logX()
+    X = np.exp(logX)
+    fig, ax = plt.subplots(1, 2, figsize=(6,2), dpi=150)
+    ax[0].hist(X, bins=bins, histtype="step")
+    ax[0].set_xlabel("X")
+    ax[1].hist(logX, bins=bins, histtype="step")
+    ax[1].axvline(x=logX[iteration], ls="--", lw=1, color="orange")
+    ax[1].set_xlabel("logX")
+    fig.suptitle("Histograms of distributions of X and logX for a set of points")
+
+
+def estimates_at_iterations(iterations, d_estimates, sigma_estimates, **kwargs):
     """Plots d, sigma against iterations"""
     figsize = kwargs.get('figsize', (3,1))
     fontsize = kwargs.get('fontsize', 6)
@@ -25,11 +38,11 @@ def plot_estimates(iterations, d_estimates, sigma_estimates, **kwargs):
     plt.tight_layout()
 
 
-def plot_fit_raw(Xdata, logLdata, model_estimates):
+def plot_fit_raw(Xdata, logLdata, model_estimates, **kwargs):
     """Plot real and modelled logL against X, given the model_estimates of [logLmax, d, sigma]"""
     logLmax_estimate, d_estimate, sigma_estimate = model_estimates
-    plt.plot(Xdata, logLdata, label="data")
-    plt.plot(Xdata, logL_model([logLmax_estimate, d_estimate, sigma_estimate], Xdata), label="model")
+    plt.scatter(Xdata, logLdata, s=3, marker="x", label="data")
+    plt.plot(Xdata, logL_model([logLmax_estimate, d_estimate, sigma_estimate], Xdata), label="model", color="orange")
     plt.xlabel("$X$")
     plt.ylabel("$\log L$")
     plt.title(f"k={len(Xdata)}, d={d_estimate:.2f}, $\sigma$={sigma_estimate:.1e}")
@@ -83,19 +96,26 @@ def plot_fits_at_iterations(samples, iterations, estimates, **kwargs):
 
 
 
-def contours(grids, min_likelihood=-1000):
+def contours(grids, slider=0, min_likelihood=-1000, levels=20):
     """Plots contours for adjustable values of logLmax given a (N, N, N) array of likelihood evaluations at the specified parameters
     Input parameter grids = [logLmaxs, ds, sigmas, logPrs] where the logLmaxs etc are arrays of where the function was evalutated"""
     logLmaxs, ds, sigmas, logPrs = grids
     N = len(logLmaxs)
+    
+
     @interact(logLmax_index=widgets.IntSlider(min=0, max=N-1, step=1))
     def plot_dsigma_contour(logLmax_index):
         dv, sigmav = np.meshgrid(ds, sigmas)
-        contour_range = np.linspace(min_likelihood, logPrs[logLmax_index].max(), 20)
+        if logPrs[logLmax_index].max() < min_likelihood:
+            raise ValueError("Minimum likelihood must be less than maxima in grid passed")
+        contour_range = np.linspace(min_likelihood, logPrs[logLmax_index].max(), levels)
         plt.contourf(dv, sigmav, logPrs[logLmax_index].T, contour_range);
-        (d_max_index, sigma_max_index), max_val = np.unravel_index(logPrs[logLmax_index].argmax(), logPrs[logLmax_index].shape), logPrs[logLmax_index].max()
+        max_val = logPrs[logLmax_index].max()
+        (d_max_index, sigma_max_index) = np.unravel_index(logPrs[logLmax_index].argmax(), logPrs[logLmax_index].shape)
         dbest, sigmabest = ds[d_max_index], sigmas[sigma_max_index]
         plt.scatter(dbest, sigmabest, marker="x")
+        plt.xlabel("d")
+        plt.ylabel("$\sigma$")
         plt.title(f"logLmax={logLmaxs[logLmax_index]:.1f}, d={dbest:.2f}, $\sigma$={sigmabest:.3f}, logPr={max_val:.2f}")
 
 

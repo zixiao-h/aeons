@@ -23,15 +23,14 @@ def logLmax_analytic(d, X_i, logL_i):
     return 1/n * logsum + 1/(2*n*sigma_squared_analytic(d, X_i, logL_i)) * sum_X_2d
 
 
-def params_from_d(samples, iteration, d):
+def params_from_d(logLdata, Xdata, d):
     """Calculates (logLmax, sigma) from d using analytic expressions"""
-    logLdata, Xdata = live_data(samples, iteration)
     sigma = np.sqrt(sigma_squared_analytic(d, Xdata, logLdata))
     logL_max = logLmax_analytic(d, Xdata, logLdata)
     return [logL_max, d, sigma]
 
 
-def analytic_lm(logLdata, Xdata, d0, bounds=(0.99, np.inf)):
+def analytic_lm(logLdata, Xdata, d0, bounds=(0, np.inf)):
     """
     Input: logLdata, Xdata, d0
     Output: (solution), solution of parameters to least squares fit of logLdata vs Xdata using
@@ -44,7 +43,13 @@ def analytic_lm(logLdata, Xdata, d0, bounds=(0.99, np.inf)):
     return solution
 
 
-def analytic_lm_params(samples, iteration, d0=None):
+def analytic_lm_params(logLdata, Xdata, d0):
+    """Returns [logLmax, d, sigma] using analytic LM method"""
+    d, = analytic_lm(logLdata, Xdata, d0).x
+    return params_from_d(logLdata, Xdata, d)
+
+
+def analytic_lm_params_at_iteration(samples, iteration, d0=None):
     """Returns estimated parameters [logLmax, d, sigma] at a given iteration using LM
     with analytic simplification"""
     live_logL, live_X = live_data(samples, iteration)

@@ -1,0 +1,12 @@
+README.md
+setup.py
+aeons/__init__.py
+aeons/covariance.py
+aeons/lm_partial.py
+aeons/plotting.py
+aeons/tools.py
+aeons.egg-info/PKG-INFO
+aeons.egg-info/SOURCES.txt
+aeons.egg-info/dependency_links.txt
+aeons.egg-info/not-zip-safe
+aeons.egg-info/top_level.txt

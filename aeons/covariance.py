@@ -80,38 +80,47 @@ def optimise_pr_cg(logL, mean, cov_inv, x0):
     def func(theta):
         logX = logX_model(logL, *theta)
         return - logPr(logX, mean, cov_inv) # want to maximise probability <-> minimise negative
-    solution = minimize(func, x0, method="Nelder-Mead")
+    solution = minimize(func, x0)
     return solution
 
 
-@nb.jit(nopython=True)
-def brute(logL, mean, covinv, N):
-    """Calculates all function values across some parameter space (can be specified by kwargs) and returns as an array"""
-    
-    def logX_model(logL, logLmax, d, sigma):
-     logLmax_array = logLmax * np.ones(len(logL))
-     return d/2 * np.log(2*sigma**2 *(logLmax_array - logL))
+def grid_search(logL, mean, covinv, params_range):
+    """Brute force search of parameter range. Returns array of logPrs as 3D array"""
+    logLmaxs, ds, sigmas = params_range
+    NL, Nd, Ns = len(logLmaxs), len(ds), len(sigmas)
 
-    def logPr(logX, mean, cov_inv):
-        return - (logX - mean).T @ cov_inv @ (logX - mean)
+    @nb.jit(nopython=True)
+    def brute():
+        """Calculates all function values across some parameter space (can be specified by kwargs) and returns as an array"""
+        def logX_model(logL, logLmax, d, sigma):
+            logLmax_array = logLmax * np.ones(len(logL))
+            return d/2 * np.log(2*sigma**2 *(logLmax_array - logL))
 
-    def logPr_params(logL, mean, cov_inv, params):
-        logLmax, d, sigma = params
-        logX = logX_model(logL, logLmax, d, sigma)
-        return logPr(logX, mean, cov_inv)
-        
-    logLmaxs = np.linspace(-9, 0, N)
-    ds = np.linspace(1, 20, N)
-    sigmas = np.linspace(0.05, 0.15, N)
+        def logPr(logX, mean, cov_inv):
+            return - (logX - mean).T @ cov_inv @ (logX - mean)
 
-    logPrs = np.zeros((N, N, N))
-    for i in range(N):
-        for j in range(N):
-            for k in range(N):
-                params = [logLmaxs[i], ds[j], sigmas[k]]
-                logPrs[i][j][k] = logPr_params(logL, mean, covinv, params)
-    return logLmaxs, ds, sigmas, logPrs
+        def logPr_params(logL, mean, cov_inv, params):
+            logLmax, d, sigma = params
+            logX = logX_model(logL, logLmax, d, sigma)
+            return logPr(logX, mean, cov_inv)
 
+        logPrs = np.zeros((NL, Nd, Ns))
+        for i in range(NL):
+            for j in range(Nd):
+                for k in range(Ns):
+                    params = [logLmaxs[i], ds[j], sigmas[k]]
+                    logPrs[i][j][k] = logPr_params(logL, mean, covinv, params)
+        return logPrs
+    return brute()
+
+
+def get_max(grids):
+    """Get maximum likelihood and corresponding parameters from brute force evaluation of parameter space"""
+    logLmaxs, ds, sigmas, logPrs = grids
+    logLmax_index, d_index, sigma_index = np.unravel_index(np.argmax(logPrs), logPrs.shape)
+    logLmax_best, d_best, sigma_best = logLmaxs[logLmax_index], ds[d_index], sigmas[sigma_index]
+    logPr_max = logPrs.max()
+    return logLmax_best, d_best, sigma_best, logPr_max
 
 # def logX_mean_at_iteration(samples, iteration):
 #     """Function that returns the mean vector for a given iteration of samples"""
