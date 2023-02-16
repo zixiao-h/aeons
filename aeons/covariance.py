@@ -71,6 +71,31 @@ def logX_covinv_rud(live_point_distribution):
     return cov_inv
 
 
+def X_mu(nk):
+    """Mean of X for a live point distribution nk through a run"""
+    return np.cumprod(nk/(nk+1))
+
+
+def X_cov(nk):
+    """Covariance matrix between X for a live point distribution nk through a run"""
+    t_1 = np.cumprod(nk/(nk+1)) # cumulative product of expectation of t
+    t_2 = np.cumprod(nk/(nk+2)) # cumulative product of expectation of t^2
+    iterations = len(nk)
+    cov_X = np.zeros((iterations, iterations))
+    for i in range(iterations):
+        cov_X[i][i] = t_2[i] - t_1[i]**2 
+        for j in range(i+1, iterations): # start j above i so min(i,j) automatically fulfilled
+            correlated = t_2[i] - t_1[i]**2
+            independent = t_1[j]/t_1[i] # cumulative product from i+1 to j
+            cov_X[i][j] = cov_X[j][i] = correlated * independent
+    return cov_X
+
+
+def X_covinv(nk):
+    """Inverse covariance between X for live point distribution nk through a nested sampling run"""
+    return np.linalg.inv(X_cov(nk))
+
+
 from scipy.optimize import minimize
 def optimise_pr_cg(logL, mean, cov_inv, x0):
     """Optimise correlated gaussian probability as a function of the parameters (logLmax, d, sigma)
