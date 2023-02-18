@@ -1,6 +1,12 @@
 import numpy as np
 import numba as nb
 
+def data_at_iteration(samples, iteration):
+    points = points_at_iteration(samples, iteration)
+    nk = np.array(points.nlive)
+    logL = np.array(points.logL)
+    return nk, logL 
+
 
 def logX_model(logL, logLmax, d, sigma):
      """Returns logX as a function of logL, logLmax, d, sigma"""
@@ -71,12 +77,14 @@ def logX_covinv_rud(live_point_distribution):
     return cov_inv
 
 
+@nb.jit(nopython=True)
 def X_mu(nk):
     """Mean of X for a live point distribution nk through a run"""
     return np.cumprod(nk/(nk+1))
 
 
-def X_cov(nk):
+@nb.jit(nopython=True)
+def X_Sigma(nk):
     """Covariance matrix between X for a live point distribution nk through a run"""
     t_1 = np.cumprod(nk/(nk+1)) # cumulative product of expectation of t
     t_2 = np.cumprod(nk/(nk+2)) # cumulative product of expectation of t^2
@@ -91,9 +99,9 @@ def X_cov(nk):
     return cov_X
 
 
-def X_covinv(nk):
+def X_Sigmainv(nk):
     """Inverse covariance between X for live point distribution nk through a nested sampling run"""
-    return np.linalg.inv(X_cov(nk))
+    return np.linalg.inv(X_Sigma(nk))
 
 
 from scipy.optimize import minimize
