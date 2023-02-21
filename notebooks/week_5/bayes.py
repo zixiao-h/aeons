@@ -8,15 +8,16 @@ def logPr_gaussian(logL, likelihood, mean, covinv, theta):
 
 
 def logPr_bayes(logL, likelihood, mean, covinv, theta):
+    """likelihood = f(X_i, theta)"""
     Xstar = likelihood.inverse(logL, theta)
     log_abs_fprimes = np.log(abs(likelihood.prime(Xstar, theta)))
     return - np.sum(log_abs_fprimes) - 1/2 * (Xstar - mean).T @ covinv @ (Xstar - mean)
 
 
-def minimise_ls(logL, likelihood, mean, theta0):
+def minimise_ls(logL, likelihood, mean, theta0, bounds=(-np.inf, np.inf)):
     def loss(theta):
         return logL - likelihood.func(mean, theta)
-    solution = least_squares(loss, theta0)
+    solution = least_squares(loss, theta0, bounds=bounds)
     return solution
 
 
