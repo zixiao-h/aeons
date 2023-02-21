@@ -28,8 +28,8 @@ def minimise_gaussian(logL, likelihood, mean, covinv, x0):
     return solution
 
 
-def minimise_bayes(logL, likelihood, mean, covinv, x0):
+def minimise_bayes(logL, likelihood, mean, covinv, x0, bounds=(-np.inf, np.inf)):
     def func(theta):
         return - logPr_bayes(logL, likelihood, mean, covinv, theta)
-    solution = minimize(func, x0)
+    solution = minimize(func, x0, bounds=bounds)
     return solution
