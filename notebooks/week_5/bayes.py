@@ -14,6 +14,12 @@ def logPr_bayes(logL, likelihood, mean, covinv, theta):
     return - np.sum(log_abs_fprimes) - 1/2 * (Xstar - mean).T @ covinv @ (Xstar - mean)
 
 
+def logPr_laplace(theta, logpr_max, theta_max, Hessian):
+    if len(theta) == 1:
+        return float(logpr_max - 1/2 * (theta - theta_max).T * (- Hessian) * (theta - theta_max))
+    return logpr_max - 1/2 * (theta - theta_max).T @ (- Hessian) @ (theta - theta_max) # A = negative hessian
+
+
 def minimise_ls(logL, likelihood, mean, theta0, bounds=(-np.inf, np.inf)):
     def loss(theta):
         return logL - likelihood.func(mean, theta)
@@ -24,7 +30,7 @@ def minimise_ls(logL, likelihood, mean, theta0, bounds=(-np.inf, np.inf)):
 def minimise_gaussian(logL, likelihood, mean, covinv, x0):
     def func(theta):
         return - logPr_gaussian(logL, likelihood, mean, covinv, theta)
-    solution = minimize(func, x0)
+    solution = minimize(func, x0, method='Nelder-Mead')
     return solution
 
 

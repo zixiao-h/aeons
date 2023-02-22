@@ -39,6 +39,8 @@ def hess_cross_ij(theta_1, theta_2):
     return numeric_func
 
 def hess_logfprime(logL, theta_max, theta_1, theta_2):
+    if set([theta_1, theta_2]) == set([logLmax, sigma]):
+        return 0
     return hess_fprime_i(theta_1, theta_2)(logL, *theta_max).sum()
 
 def hess_cross(logL, mean, covinv, theta_max, theta_1, theta_2):
