@@ -77,13 +77,13 @@ def logX_covinv_rud(live_point_distribution):
     return cov_inv
 
 
-@nb.jit(nopython=True)
+@nb.jit
 def X_mu(nk):
     """Mean of X for a live point distribution nk through a run"""
     return np.cumprod(nk/(nk+1))
 
 
-@nb.jit(nopython=True)
+@nb.jit
 def X_Sigma(nk):
     """Covariance matrix between X for a live point distribution nk through a run"""
     t_1 = np.cumprod(nk/(nk+1)) # cumulative product of expectation of t

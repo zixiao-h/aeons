@@ -1,6 +1,10 @@
 import numpy as np
 import sympy as sp
 import numba as nb
+import torch
+from aeons.likelihoods import full_like
+full = full_like()
+
 
 logLmax, d, sigma = sp.symbols('\log{L_\mathrm{max}} d \sigma')
 X_i, logL_i, logL_j = sp.symbols('X_i \log{L_i} \log{L_j}')
@@ -66,6 +70,26 @@ def hess(logL, mean, covinv, theta_max):
     hess[0][1] = hess[1][0] = hess_tt(logL, mean, covinv, theta_max, logLmax, d)
     hess[0][2] = hess[2][0] = hess_tt(logL, mean, covinv, theta_max, logLmax, sigma)
     hess[1][1] = hess_tt(logL, mean, covinv, theta_max, d, d)
-    hess[1][2] = hess[2][1] = hess_tt(logL, mean, covinv, theta_max, d, sigma)
+    hess[1][2] = hess[2][1] = hess_tt(logL, mean, covinv, theta_max, sigma, d)
     hess[2][2] = hess_tt(logL, mean, covinv, theta_max, sigma, sigma)
     return hess
+
+
+def hess_autograd(logL, mean, covinv, theta_max):
+    logL = torch.from_numpy(logL)
+    mean = torch.from_numpy(mean)
+    covinv = torch.from_numpy(covinv)
+    input = torch.tensor(theta_max, requires_grad=True)
+    
+    def logPr_bayes(logL, likelihood, mean, covinv, theta):
+        """likelihood = f(X_i, theta)"""
+        Xstar = likelihood.inverse(logL, theta)
+        log_abs_fprimes = torch.log(abs(likelihood.prime(Xstar, theta)))
+        return - torch.sum(log_abs_fprimes) - 1/2 * (Xstar - mean).T @ covinv @ (Xstar - mean)
+
+    def logPr_bayes_max(theta):
+        return logPr_bayes(logL, full, mean, covinv, theta)
+    
+    from torch.autograd.functional import hessian
+    H = hessian(logPr_bayes_max, input)
+    return np.array(H)
