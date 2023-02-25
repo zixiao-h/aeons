@@ -45,7 +45,8 @@ def hess_cross_ij(theta_1, theta_2):
 def hess_logfprime(logL, theta_max, theta_1, theta_2):
     if set([theta_1, theta_2]) == set([logLmax, sigma]):
         return 0
-    return hess_fprime_i(theta_1, theta_2)(logL, *theta_max).sum()
+    hess_fprime_i_array = hess_fprime_i(theta_1, theta_2)(logL, *theta_max) * np.ones_like(logL) # ensures still array-like if independent of logL_i
+    return np.sum(hess_fprime_i_array)
 
 def hess_cross(logL, mean, covinv, theta_max, theta_1, theta_2):
     hess_tt_ij = hess_cross_ij(theta_1, theta_2)

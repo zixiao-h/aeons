@@ -15,7 +15,7 @@ def logPr_bayes(logL, likelihood, mean, covinv, theta):
 
 
 def logPr_laplace(theta, logpr_max, theta_max, Hessian):
-    if len(theta) == 1:
+    if not hasattr(theta, "__len__"):
         return float(logpr_max - 1/2 * (theta - theta_max).T * (- Hessian) * (theta - theta_max))
     return logpr_max - 1/2 * (theta - theta_max).T @ (- Hessian) @ (theta - theta_max) # A = negative hessian
 

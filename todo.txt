@@ -1,0 +1,3 @@
+Implement P(X|logL)
+
+Calculate evidences for logX vs X
