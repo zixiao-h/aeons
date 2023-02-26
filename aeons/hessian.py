@@ -76,7 +76,7 @@ def hess(logL, mean, covinv, theta_max):
     return hess
 
 
-def hess_autograd(logL, mean, covinv, theta_max):
+def hess_autograd(logL, likelihood, mean, covinv, theta_max):
     logL = torch.from_numpy(logL)
     mean = torch.from_numpy(mean)
     covinv = torch.from_numpy(covinv)
@@ -89,7 +89,7 @@ def hess_autograd(logL, mean, covinv, theta_max):
         return - torch.sum(log_abs_fprimes) - 1/2 * (Xstar - mean).T @ covinv @ (Xstar - mean)
 
     def logPr_bayes_max(theta):
-        return logPr_bayes(logL, full, mean, covinv, theta)
+        return logPr_bayes(logL, likelihood, mean, covinv, theta)
     
     from torch.autograd.functional import hessian
     H = hessian(logPr_bayes_max, input)

@@ -47,7 +47,7 @@ def logX_mu(live_point_distribution):
 
 
 @nb.jit(nopython=True)
-def logX_covinv_chol(live_point_distribution):
+def logX_Sigmainv(live_point_distribution):
     """Calculates the covariance matrix between the logXs at each iteration given the live point distribution for a NS run
     using Cholesky decomposition"""
     total_iterations = len(live_point_distribution)

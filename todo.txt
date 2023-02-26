@@ -1,3 +1,28 @@
-Implement P(X|logL)
+-------- TODO --------
 
-Calculate evidences for logX vs X
+Have we found the right maximum for P(X|logL)? 
+Need a clever/visual way to show this. If we have, then can start thinking about missing terms in posterior
+
+What is P(theta|X)?
+
+Test on wedding cake likelihood
+
+
+
+
+-------- DONE --------
+
+Fix analytic Hessian, compare with torch Hessian - get same result.
+Autograd much faster; even with cached analytic expressions, still have to sum over all terms
+Plotted errorbars with using correct Hessian, 10 different instances
+
+Cholesky normalised errors off-center due to regularising term
+
+Calculate evidences for logX vs X. Doesn't seem to meet the eye test?
+
+Basic implementation of P(X|logL)
+Doesn't seem to work very well. Potential issues
+- Is the maximum in the right place? Suspect not, might be missing a P(theta|X) term
+- Have we found the right maximum? Clever way to see whether we have
+
+

@@ -47,46 +47,67 @@ def log_like():
     return likelihood(func, inverse, prime)
 
 
-def simple_like():
+def simple_like(logX=False):
     def func(X, d):
+        if logX:
+            X = np.exp(X)
         return -X**(2/d)
 
     def inverse(logL, d):
+        if logX:
+            return np.log((-logL)**(d/2))
         return (-logL)**(d/2)
 
     def prime(X, d):
+        if logX:
+            X = np.exp(X)
+            return - (2/d) * X**(2/d)
         return - (2/d) * X**(2/d - 1)
 
     return likelihood(func, inverse, prime)
 
 
-def middle_like():
+def middle_like(logX=False):
     def func(X, theta):
         d, sigma = theta
+        if logX:
+            X = np.exp(X)
         return - X**(2/d)/(2*sigma**2)
 
     def inverse(logL, theta):
         d, sigma = theta
+        if logX:
+            return np.log((-2*sigma**2*logL)**(d/2))
         return (-2*sigma**2*logL)**(d/2)
 
     def prime(X, theta):
         d, sigma = theta
+        if logX:
+            X = np.exp(X)
+            return - (1/d*sigma**2) * X**(2/d)
         return - (1/d*sigma**2) * X**(2/d - 1)
     
     return likelihood(func, inverse, prime)
 
 
-def full_like():
+def full_like(logX=False):
     def func(X, theta):
         logLmax, d, sigma = theta
+        if logX:
+            X = np.exp(X)
         return logLmax - X**(2/d)/(2*sigma**2)
 
     def inverse(logL, theta):
         logLmax, d, sigma = theta
+        if logX:
+            return np.log((2*sigma**2 * (logLmax - logL))**(d/2))
         return (2*sigma**2 * (logLmax - logL))**(d/2)
 
     def prime(X, theta):
         logLmax, d, sigma = theta
+        if logX:
+            X = np.exp(X)
+            return - 1/(d*sigma**2) * X**(2/d)
         return - 1/(d*sigma**2) * X**(2/d - 1)
     
     return likelihood(func, inverse, prime)
