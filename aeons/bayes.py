@@ -22,7 +22,7 @@ def logPr_laplace(theta, logpr_max, theta_max, Hessian):
 
 def minimise_ls(logL, likelihood, mean, theta0, bounds=(-np.inf, np.inf)):
     def loss(theta):
-        return logL - likelihood.func(mean, theta)
+        return mean - likelihood.inverse(logL, theta)
     solution = least_squares(loss, theta0, bounds=bounds)
     return solution
 
