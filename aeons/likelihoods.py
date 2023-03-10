@@ -30,7 +30,7 @@ def quad_like():
     def inverse(y, theta, torch=True):
         return (y/theta)**(1/2)
 
-    def prime(X, theta):
+    def prime(X, theta, torch=True):
         return 2 * theta * X
     
     return likelihood(func, inverse, prime)
@@ -45,7 +45,7 @@ def log_like():
             return torch.exp(y/theta)
         return np.exp(y/theta)
 
-    def prime(X, theta):
+    def prime(X, theta, torch=True):
         return theta / X
 
     return likelihood(func, inverse, prime)
@@ -58,7 +58,7 @@ def simple_like():
     def inverse(logL, d, torch=True):
         return (-logL)**(d/2)
 
-    def prime(X, d):
+    def prime(X, d, torch=True):
         return - (2/d) * X**(2/d - 1)
 
     return likelihood(func, inverse, prime)
@@ -73,7 +73,7 @@ def middle_like():
         d, sigma = theta
         return (-2*sigma**2*logL)**(d/2)
 
-    def prime(X, theta):
+    def prime(X, theta, torch=True):
         d, sigma = theta
         return - (1/d*sigma**2) * X**(2/d - 1)
     
@@ -89,7 +89,7 @@ def full_like():
         logLmax, d, sigma = theta
         return (2*sigma**2 * (logLmax - logL))**(d/2)
 
-    def prime(X, theta):
+    def prime(X, theta, torch=True):
         logLmax, d, sigma = theta
         return - 1/(d*sigma**2) * X**(2/d - 1)
     
