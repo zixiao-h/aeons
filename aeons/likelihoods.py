@@ -23,6 +23,24 @@ def linear_like():
     return likelihood(func, inverse, prime)
 
 
+def ax_b_like():
+    def func(X, theta):
+        a, b = theta
+        return a * X + b
+
+    def inverse(y, theta, torch=True):
+        a, b = theta
+        return (y - b)/a
+
+    def prime(X, theta, torch=False):
+        a, b = theta
+        if torch:
+            return a * torch.ones_like(X)
+        return a * np.ones_like(X)
+
+    return likelihood(func, inverse, prime)
+
+
 def quad_like():
     def func(X, theta):
         return theta * X**2
@@ -97,3 +115,4 @@ def full_like():
 
 linear, quad, log = linear_like(), quad_like(), log_like()
 simple, middle, full = simple_like(), middle_like(), full_like()
+ax_b = ax_b_like()
