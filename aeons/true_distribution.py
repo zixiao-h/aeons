@@ -1,5 +1,19 @@
 import numpy as np
 
+def nk_dead(nlive, ndead):
+    return nlive * np.ones(ndead)
+
+
+def nk_dead_live(nlive, ndead):
+    nk0 = nlive * np.ones(ndead)
+    nk1 = np.flip(np.arange(1, nlive))
+    return np.concatenate((nk0, nk1))
+
+
+def nk_live(nlive):
+    return np.flip(np.arange(1, nlive + 1))
+
+
 def logt_sample(n):
     """Generate logt for given number of live points n"""
     p = np.random.rand()
@@ -32,3 +46,4 @@ def generate_Xsamples(nk, n_samples=1000, iterations=None):
     for i in range(n_samples):
         X_samples[i] = generate_Xs(nk, iterations)    
     return X_samples
+

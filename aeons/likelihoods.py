@@ -94,3 +94,6 @@ def full_like():
         return - 1/(d*sigma**2) * X**(2/d - 1)
     
     return likelihood(func, inverse, prime)
+
+linear, quad, log = linear_like(), quad_like(), log_like()
+simple, middle, full = simple_like(), middle_like(), full_like()
