@@ -1,7 +1,9 @@
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 from torch.autograd.functional import hessian
+from aeons.bayes import logPr_laplace
 
 
 def logZ(logPmax, H, D, details=False):
@@ -31,6 +33,27 @@ class Model:
         H = self.hess(theta_max)
         D = len(theta_max) + 1
         return logZ(logPr_max, H, D, details)
+    
+    def covtheta(self, theta_max):
+        H = self.hess(theta_max)
+        return np.linalg.inv(-H)
+    
+    def plot_hess(self, theta_max, index, lim=1e-2, points=1000):
+        logPr_max = self.logPr(theta_max)
+        param_max = theta_max[index]
+        params = np.linspace(param_max*(1-lim), param_max*(1+lim), points)
+        logprs = np.zeros_like(params)
+        logprs_laplace = np.zeros_like(params)
+        H = self.hess(theta_max)
+        for i, param in enumerate(params):
+            theta_arr = np.copy(theta_max)
+            theta_arr[index] = param
+            logprs[i] = self.logPr(theta_arr)
+            logprs_laplace[i] = logPr_laplace(param, logPr_max, param_max, H[index][index])
+        plt.plot(params, logprs, color='black', label='true')
+        plt.plot(params, logprs_laplace, color='orange', label='laplace')
+        plt.legend();
+        
     
 
 class LS(Model):
@@ -64,6 +87,12 @@ class LS(Model):
             return -1/2 * self.N * torch.log(2*torch.pi*s**2) - L_sq/(2*s**2)
         H = hessian(func, theta_s_max)
         return np.array(H)
+    
+    def covtheta(self, theta_max):
+        """Redefine to exclude rows/columns with covariance of s"""
+        Dtheta = len(theta_max)
+        H = self.hess(theta_max)
+        return np.linalg.inv(-H[:Dtheta, :Dtheta])
     
 
 class CG(Model):
