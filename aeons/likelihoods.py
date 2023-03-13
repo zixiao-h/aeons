@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 
 class likelihood:
@@ -12,11 +13,11 @@ def linear_like():
     def func(X, theta):
         return theta * X
 
-    def inverse(y, theta, torch=True):
+    def inverse(y, theta, torched=True):
         return y / theta
 
-    def prime(X, theta, torch=False):
-        if torch:
+    def prime(X, theta, torched=False):
+        if torched:
             return theta * torch.ones_like(X)
         return theta * np.ones_like(X)
 
@@ -28,13 +29,13 @@ def ax_b_like():
         a, b = theta
         return a * X + b
 
-    def inverse(y, theta, torch=True):
+    def inverse(y, theta, torched=True):
         a, b = theta
         return (y - b)/a
 
-    def prime(X, theta, torch=False):
+    def prime(X, theta, torched=False):
         a, b = theta
-        if torch:
+        if torched:
             return a * torch.ones_like(X)
         return a * np.ones_like(X)
 
@@ -45,10 +46,10 @@ def quad_like():
     def func(X, theta):
         return theta * X**2
 
-    def inverse(y, theta, torch=True):
+    def inverse(y, theta, torched=True):
         return (y/theta)**(1/2)
 
-    def prime(X, theta, torch=True):
+    def prime(X, theta, torched=True):
         return 2 * theta * X
     
     return likelihood(func, inverse, prime)
@@ -58,12 +59,12 @@ def log_like():
     def func(X, theta):
         return theta * np.log(X)
 
-    def inverse(y, theta, torch=False):
-        if torch:
+    def inverse(y, theta, torched=False):
+        if torched:
             return torch.exp(y/theta)
         return np.exp(y/theta)
 
-    def prime(X, theta, torch=True):
+    def prime(X, theta, torched=True):
         return theta / X
 
     return likelihood(func, inverse, prime)
@@ -73,10 +74,10 @@ def simple_like():
     def func(X, d):
         return -X**(2/d)
 
-    def inverse(logL, d, torch=True):
+    def inverse(logL, d, torched=True):
         return (-logL)**(d/2)
 
-    def prime(X, d, torch=True):
+    def prime(X, d, torched=True):
         return - (2/d) * X**(2/d - 1)
 
     return likelihood(func, inverse, prime)
@@ -87,11 +88,11 @@ def middle_like():
         d, sigma = theta
         return - X**(2/d)/(2*sigma**2)
 
-    def inverse(logL, theta, torch=True):
+    def inverse(logL, theta, torched=True):
         d, sigma = theta
         return (-2*sigma**2*logL)**(d/2)
 
-    def prime(X, theta, torch=True):
+    def prime(X, theta, torched=True):
         d, sigma = theta
         return - (1/d*sigma**2) * X**(2/d - 1)
     
@@ -103,11 +104,11 @@ def full_like():
         logLmax, d, sigma = theta
         return logLmax - X**(2/d)/(2*sigma**2)
 
-    def inverse(logL, theta, torch=True):
+    def inverse(logL, theta, torched=True):
         logLmax, d, sigma = theta
         return (2*sigma**2 * (logLmax - logL))**(d/2)
 
-    def prime(X, theta, torch=True):
+    def prime(X, theta, torched=True):
         logLmax, d, sigma = theta
         return - 1/(d*sigma**2) * X**(2/d - 1)
     

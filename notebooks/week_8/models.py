@@ -59,7 +59,7 @@ class LS(Model):
                 theta, s = theta_s
             else:
                 *theta, s = theta_s
-            loss = mean - self.likelihood.inverse(y, theta, torch=True)
+            loss = mean - self.likelihood.inverse(y, theta, torched=True)
             L_sq = torch.sum(loss**2)
             return -1/2 * self.N * torch.log(2*torch.pi*s**2) - L_sq/(2*s**2)
         H = hessian(func, theta_s_max)
@@ -83,8 +83,8 @@ class CG(Model):
         covinv = torch.from_numpy(self.covinv)
         theta_max = torch.tensor(theta_max, requires_grad=True)
         def func(theta):
-            Xstar = self.likelihood.inverse(y, theta, torch=True)
-            log_abs_fprimes = torch.log(abs(self.likelihood.prime(Xstar, theta, torch=True)))
+            Xstar = self.likelihood.inverse(y, theta, torched=True)
+            log_abs_fprimes = torch.log(abs(self.likelihood.prime(Xstar, theta, torched=True)))
             return - torch.sum(log_abs_fprimes) - 1/2 * (Xstar - mean).T @ covinv @ (Xstar - mean)
         H = hessian(func, theta_max)
         return np.array(H)
