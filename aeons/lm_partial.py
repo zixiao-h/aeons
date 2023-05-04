@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.optimize import least_squares
-from aeons.lm_full import live_data
+# from aeons.lm_full import live_data
 
 
 def sigma_squared_analytic(d, X_i, logL_i):
@@ -58,3 +58,10 @@ def analytic_lm_params_at_iteration(samples, iteration, d0=None):
     d, = analytic_lm(live_logL, live_X, d0).x
     estimated_params = params_from_d(samples, iteration, d)
     return estimated_params
+
+
+def X_end_formula(d, sigma, epsilon):
+    """Returns end value of X given estimates of d, sigma"""
+    from scipy.special import gamma
+    return epsilon * gamma(1+d/2) * 2**(d/2) * sigma**d
+X_end_formula = np.vectorize(X_end_formula)

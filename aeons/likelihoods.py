@@ -78,7 +78,7 @@ def simple_like():
         return (-logL)**(d/2)
 
     def prime(X, d, torched=True):
-        return - (2/d) * X**(2/d - 1)
+        return -(2/d) * X**(-2/d - 1)
 
     return likelihood(func, inverse, prime)
 
