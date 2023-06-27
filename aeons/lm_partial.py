@@ -41,23 +41,23 @@ def analytic_lm(logLdata, Xdata, d0, bounds=(0, np.inf)):
             (Xdata**(2/d)) / (2 * sigma_squared_analytic(d, Xdata, logLdata)) )
     solution = least_squares(logL_loss, d0, bounds=bounds)
     return solution
+ 
 
-
-def analytic_lm_params(logLdata, Xdata, d0):
+def analytic_lm_params(logLdata, Xdata, d0, bounds=(0, np.inf)):
     """Returns [logLmax, d, sigma] using analytic LM method"""
-    d, = analytic_lm(logLdata, Xdata, d0).x
+    d, = analytic_lm(logLdata, Xdata, d0, bounds=bounds).x
     return params_from_d(logLdata, Xdata, d)
 
 
-def analytic_lm_params_at_iteration(samples, iteration, d0=None):
-    """Returns estimated parameters [logLmax, d, sigma] at a given iteration using LM
-    with analytic simplification"""
-    live_logL, live_X = live_data(samples, iteration)
-    if not d0:
-        d0 = 1
-    d, = analytic_lm(live_logL, live_X, d0).x
-    estimated_params = params_from_d(samples, iteration, d)
-    return estimated_params
+# def analytic_lm_params_at_iteration(samples, iteration, d0=None):
+#     """Returns estimated parameters [logLmax, d, sigma] at a given iteration using LM
+#     with analytic simplification"""
+#     live_logL, live_X = live_data(samples, iteration)
+#     if not d0:
+#         d0 = 1
+#     d, = analytic_lm(live_logL, live_X, d0).x
+#     estimated_params = params_from_d(samples, iteration, d)
+#     return estimated_params
 
 
 def X_end_formula(d, sigma, epsilon):

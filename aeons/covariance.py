@@ -32,10 +32,18 @@ def X_logL(points):
     return X, logL
 
 
-def points_at_iteration(samples, iteration):
-    logL_k = samples.iloc[iteration].logL
-    all_points = samples[samples.logL_birth < logL_k]
-    points = all_points.recompute()
+# def points_at_iteration(samples, iteration):
+#     logL_k = samples.iloc[iteration].logL
+#     all_points = samples[samples.logL_birth < logL_k]
+#     points = all_points.recompute()
+#     return points
+
+def points_at_iteration(samples, ndead):
+    nlive = samples.iloc[ndead].nlive
+    logL_k = samples.iloc[ndead].logL
+    points = samples[samples.logL_birth < logL_k]
+    nk = np.concatenate([points.nlive[:ndead], np.flip(np.arange(1, nlive+1))])
+    points = points.assign(nlive=nk)
     return points
 
 

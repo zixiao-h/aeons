@@ -52,7 +52,7 @@ class Model:
         H = self.hess(theta_max)
         return np.linalg.inv(-H)
     
-    def plot_hess(self, theta_max, index, lim=1e-2, points=1000):
+    def plot_hess(self, theta_max, index, lim=1e-2, points=1000, plot=True):
         logPr_max = self.logPr(theta_max)
         param_max = theta_max[index]
         params = np.linspace(param_max*(1-lim), param_max*(1+lim), points)
@@ -64,9 +64,11 @@ class Model:
             theta_arr[index] = param
             logprs[i] = self.logPr(theta_arr)
             logprs_laplace[i] = logPr_laplace(param, logPr_max, param_max, H[index][index])
-        plt.plot(params, logprs, color='black', label='true')
-        plt.plot(params, logprs_laplace, color='orange', label='laplace')
-        plt.legend();
+        if plot:
+            plt.plot(params, logprs, color='black', label='true')
+            plt.plot(params, logprs_laplace, color='orange', label='laplace')
+            plt.legend();
+        return logprs, logprs_laplace, params
 
     def plot_errors(self, X, theta_max, lines=100):
         y = self.y
@@ -94,7 +96,8 @@ class LS(Model):
         super().__init__(y, likelihood, mean, covinv)
     
     def L_sq(self, theta):
-        loss = self.mean - self.likelihood.inverse(self.y, theta)
+        # loss = self.mean - self.likelihood.inverse(self.y, theta)
+        loss = self.y - self.likelihood.func(self.mean, theta)
         return np.sum(loss**2)
     
     def s(self, theta):
@@ -115,7 +118,8 @@ class LS(Model):
                 theta, s = theta_s
             else:
                 *theta, s = theta_s
-            loss = mean - self.likelihood.inverse(y, theta, torched=True)
+            # loss = mean - self.likelihood.inverse(y, theta, torched=True)
+            loss = y - self.likelihood.func(mean, theta, torched=True)
             L_sq = torch.sum(loss**2)
             return -1/2 * self.N * torch.log(2*torch.pi*s**2) - L_sq/(2*s**2)
         H = hessian(func, theta_s_max)

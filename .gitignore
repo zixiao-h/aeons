@@ -3,3 +3,4 @@ test_samples/
 *.pickle
 __pycache__/
 .ipynb_checkpoints/
+*.pdf

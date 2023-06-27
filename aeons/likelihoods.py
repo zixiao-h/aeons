@@ -71,7 +71,7 @@ def log_like():
 
 
 def simple_like():
-    def func(X, d):
+    def func(X, d, torched=True):
         return -X**(2/d)
 
     def inverse(logL, d, torched=True):
@@ -84,7 +84,7 @@ def simple_like():
 
 
 def middle_like():
-    def func(X, theta):
+    def func(X, theta, torched=True):
         d, sigma = theta
         return - X**(2/d)/(2*sigma**2)
 
@@ -100,7 +100,7 @@ def middle_like():
 
 
 def full_like():
-    def func(X, theta):
+    def func(X, theta, torched=True):
         logLmax, d, sigma = theta
         return logLmax - X**(2/d)/(2*sigma**2)
 
