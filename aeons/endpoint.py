@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from scipy.special import gammainc, gamma, logsumexp, gammaincinv, loggamma
 
 from aeons.lm_partial import analytic_lm_params
@@ -7,6 +8,7 @@ from aeons.covariance import points_at_iteration, X_mu
 from aeons.true_distribution import generate_Xs
 from aeons.likelihoods import full
 from aeons.models import LS
+
 
 def reject_outliers(data):
     data = np.array(data)
@@ -61,15 +63,12 @@ def minimise_bandwidth(logL, X_mean, ndead, alphas, x0, warnings=False, give_alp
 
 class EndModel:
     def __init__(self, samples):
-        self.samples = samples
+        self.samples = add_logZ(samples)
+        self.logZ = self.samples['logZ']
         self.logX_mean = np.array(samples.logX())
         self.logL = np.array(samples.logL)
         self.L = np.exp(self.logL)
         self.nlive = float(samples.nlive[0])
-    
-    def logXf_true(self, N=50, start=0.5):
-        kf = end_iteration(self.samples, N, start)
-        return self.logX_mean[kf]
 
     def points(self, ndead):
         return points_at_iteration(self.samples, ndead)
@@ -78,8 +77,15 @@ class EndModel:
         points = points_at_iteration(self.samples, ndead)
         logL = np.array(points.logL)
         nk = np.array(points.nlive)
-        logZdead = logsumexp(points.logw()[:ndead])
+        logZdead = self.logZ.iloc[ndead]
         return logL, nk, logZdead
+        
+    def calc_endpoint(self, epsilon=1e-3):
+        logZ = self.logZ
+        logZ_tot = logZ.iloc[-1]
+        logZ_f = np.log(1 - epsilon) + logZ_tot
+        index_f = logZ[logZ > logZ_f].index.get_level_values(0)[0]
+        return index_f
     
     def minimise(self, ndead, Nset=None):
         logL, nk, _ = self.data(ndead)
@@ -143,6 +149,7 @@ class EndModel:
                 logXf_i = reject_outliers(logXf_i)
                 logXfs[i] = np.mean(logXf_i)
                 logXfs_std[i] = np.std(logXf_i)
+                print(f'Iteration {ndead}/{iterations[-1]}')
             return logXfs, logXfs_std
         else:
             logXfs = np.zeros(N)
@@ -191,5 +198,142 @@ class EndModel:
     def plot_lx(self):
         fig, ax1 = plt.subplots(figsize=(6.7,2))
         ax2 = plt.twinx(ax1)
-        ax1.plot(self.logX_mean, self.L)
-        ax2.plot(self.logX_mean, self.L*np.exp(self.logX_mean))
+        logL_norm = self.logL - self.logL.max()
+        L_norm = np.exp(logL_norm)
+        ax1.plot(self.logX_mean, L_norm)
+        ax2.plot(self.logX_mean, L_norm*np.exp(self.logX_mean))
+        ax1.set_title(f'logL_max = {self.logL.max():.2f}')
+
+
+
+def add_logZ(samples):    
+    logw = samples.logw()
+    logZ = np.zeros_like(logw)
+    logZ[0] = logw.iloc[0]
+    for i in range(1, len(samples)):
+        logZ[i] = logsumexp([logZ[i-1], logw.iloc[i]])
+    samples['logZ'] = logZ
+    return samples
+
+def get_dlogZ(logZ):
+    logZ = pd.Series(logZ)
+    dlogZ = logZ.diff(1)[1:]
+    return dlogZ
+
+def get_dlogZ_rolling(dlogZ, N_rolling):
+    dlogZ = pd.Series(dlogZ)
+    dlogZ_rolling = dlogZ.rolling(N_rolling).mean()
+    dlogZ_rolling.dropna(inplace=True)
+    return dlogZ_rolling
+
+import numpy.polynomial.polynomial as poly
+def fit_dlogZ(dlogZ, deg):
+    x = dlogZ.index.get_level_values(0).values
+    y = dlogZ.values
+    coefs = poly.polyfit(x, y, deg)
+    return coefs
+
+def plot_endpoints(iterations, endpoints, endpoints_std, true_endpoint, ylim=1.1, logX_vals=None):
+    # plt.plot(iterations, endpoints, lw=1, color='navy')
+    if logX_vals is not None:
+        iterations = -logX_vals
+        xlim = logX_vals[-1]
+    plt.fill_between(iterations, endpoints - endpoints_std, endpoints + endpoints_std, alpha=1, color='deepskyblue')
+    plt.fill_between(iterations, endpoints - 2*endpoints_std, endpoints + 2*endpoints_std, alpha=.2, color='deepskyblue')
+    plt.axhline(y=true_endpoint, lw=1, color='navy')
+    plt.ylim(0, true_endpoint*ylim)
+
+class IncrementEndpoint:
+    def __init__(self, samples, N_rolling):
+        self.samples = add_logZ(samples)
+        self.logZ = self.samples['logZ']
+        self.dlogZ = get_dlogZ(self.logZ)
+        self.dlogZ_rolling = get_dlogZ_rolling(self.dlogZ, N_rolling)
+        self.N_rolling = N_rolling
+        self.rolling_index = self.dlogZ_rolling.index.get_level_values(0)
+        self.true_endpoint = self.calc_endpoint() # using default value of 1e-3
+
+    def plot_dlogZ(self):
+        dlogZ = self.dlogZ
+        plt.plot(dlogZ.index.get_level_values(0), dlogZ.values)
+
+    def calc_endpoint(self, epsilon=1e-3):
+        logZ = self.logZ
+        logZ_tot = logZ.iloc[-1]
+        logZ_f = np.log(1 - epsilon) + logZ_tot
+        index_f = logZ[logZ > logZ_f].index.get_level_values(0)[0]
+        return index_f
+
+    def index(self, iteration):
+        return self.dlogZ.iloc[iteration:].index.get_level_values(0).values
+    
+    def dlogZ_fit(self, iteration, N_fit):
+        return self.dlogZ_rolling.iloc[iteration - N_fit - self.N_rolling : iteration - self.N_rolling]
+    
+    def pred(self, iteration, N_fit):
+        index = np.arange(iteration - N_fit, len(self.samples))
+        dlogZ_fit = self.dlogZ_fit(iteration, N_fit)
+        coefs = fit_dlogZ(dlogZ_fit, 1)
+        dlogZ_pred = poly.polyval(index, coefs)
+        index_pred = index[dlogZ_pred > 0]
+        dlogZ_pred = dlogZ_pred[dlogZ_pred > 0]
+        return index_pred, dlogZ_pred
+
+    def plot_pred(self, iteration, N_fit):
+        index_pred, dlogZ_pred = self.pred(iteration, N_fit)
+        dlogZ_rolling = self.dlogZ_rolling
+        dlogZ_fit = self.dlogZ_fit(iteration, N_fit)
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 3))
+        ax1.plot(dlogZ_rolling.index.get_level_values(0), dlogZ_rolling)
+        ax1.plot(dlogZ_fit.index.get_level_values(0), dlogZ_fit, color='deepskyblue')
+        ax1.plot(index_pred, dlogZ_pred, color='orange', lw=1)
+        ax1.set_ylim(0, dlogZ_rolling.iloc[0])
+
+        ax2.plot(dlogZ_rolling.index.get_level_values(0), dlogZ_rolling)
+        ax2.plot(dlogZ_fit.index.get_level_values(0), dlogZ_fit, color='deepskyblue')
+        ax2.plot(index_pred, dlogZ_pred, color='orange', lw=1)
+        ax2.axvline(x = iteration, lw=.5, ls='--', color='deepskyblue')
+        ax2.set_xlim(iteration - N_fit, len(self.samples))
+        ax2.set_ylim(0, dlogZ_fit.values[0]*1.5)
+
+    def iterations(self, iteration, N_fit, epsilon=1e-3):
+        logZ_dead = self.logZ.loc[iteration]
+        index_pred, dlogZ_pred = self.pred(iteration, N_fit)
+        logZ_live = dlogZ_pred.sum()
+        logZ_tot = logZ_dead + logZ_live
+        logZ_f = np.log(1 - epsilon) + logZ_tot
+        index_f = index_pred[np.argmax([logZ_dead + dlogZ_pred.cumsum() > logZ_f])]
+        return logZ_dead, logZ_tot, index_f
+    
+    def predictions(self, N, N_fit):
+        true_end = self.true_endpoint
+        iterations = np.linspace(N_fit, true_end, N, endpoint=False).astype(int) # start at N_fit
+        predictions = np.zeros(N)
+        for i, iteration in enumerate(iterations):
+            try:
+                predictions[i] = self.iterations(iteration, N_fit)[-1]
+            except:
+                print(f'Iteration {iteration} invalid')
+        return iterations, predictions
+    
+    def plot_predictions(self, N, N_fit):
+        true_end = self.true_endpoint
+        iterations, predictions = self.predictions(N, N_fit)
+        plt.plot(iterations, predictions)
+        plt.plot(iterations, iterations, lw=1, ls='--', color='deepskyblue')
+        plt.axhline(y=true_end, lw=1, ls='--')
+        plt.ylim(0, true_end*1.5)
+        return iterations, predictions
+    
+
+def iterations_rem(logXs, logXfs, nlive):
+    dlogX = logXfs - logXs
+    iterations_rem = dlogX * -nlive
+    return iterations_rem
+
+def endpoints_calc(iterations, logXs, logXfs, logXfs_std, nlive):
+    endpoints = iterations + iterations_rem(logXs, logXfs, nlive)
+    endpoints_higher = iterations + iterations_rem(logXs, logXfs - logXfs_std, nlive)
+    endpoints_std = endpoints_higher - endpoints
+    return endpoints, endpoints_std

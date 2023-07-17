@@ -13,8 +13,8 @@ def correlated_gaussian_samples(nlive=500, ndims=5, sigma=0.1):
     samples = correlated_gaussian(nlive, mean, cov)
     return samples
 
-def gaussian_samples(nlive=500, ndims=10, sigma=0.1):
-    np.random.seed(0)
+def gaussian_samples(nlive=500, ndims=10, sigma=0.1, seed=0):
+    np.random.seed(seed)
     R = 1
     samples = gaussian(nlive, ndims, sigma, R)
     return samples
