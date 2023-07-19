@@ -22,10 +22,10 @@ def pickle_in(filename):
 
 def write_to_txt(filename, data):
     try:
-        open(filename+'.txt', 'w').close()
+        open(filename, 'w').close()
     except:
         print(f'creating {filename}.txt')
-    with open(filename+'.txt', 'a') as f:
+    with open(filename, 'a') as f:
         for item in data:
             if not np.shape(item):
                 item = [item]
@@ -34,7 +34,7 @@ def write_to_txt(filename, data):
 
 def read_from_txt(filename):
     data = []
-    with open(filename+'.txt', 'r') as f:
+    with open(filename, 'r') as f:
         for line in f:
             data.append(np.fromstring(line.rstrip('\n'), sep=','))
     return data
@@ -45,6 +45,16 @@ def get_samples(which='lcdm', chain='BAO'):
     name = f'{which}_{chain}'
     return name, samples
 
+def data_split(logLlive, Xlive, splits=1, trunc=None):
+    if trunc is not None:
+        logLlive, Xlive = logLlive[:-trunc], Xlive[:-trunc]
+    start = len(Xlive) - int(len(Xlive)/splits)
+    X_split, logL_split = Xlive[start:], logLlive[start:]
+    return logL_split, X_split
+
+def formatt(theta):
+    logLmax, d, sigma = theta
+    return f"[{logLmax:.1e}, {d:.1f}, {sigma:.0e}]"
 
 def reject_outliers(data):
     data = np.array(data)
@@ -112,16 +122,6 @@ def calc_endpoints(iterations, logXs, logXfs, logXfs_std, nlive):
     endpoints_higher = iterations + iterations_rem(logXs, logXfs - logXfs_std, nlive)
     endpoints_std = endpoints_higher - endpoints
     return endpoints, endpoints_std
-
-
-def add_logZ(samples):    
-    logw = samples.logw()
-    logZ = np.zeros_like(logw)
-    logZ[0] = logw.iloc[0]
-    for i in range(1, len(samples)):
-        logZ[i] = logsumexp([logZ[i-1], logw.iloc[i]])
-    samples['logZs'] = logZ
-    return samples
 
 
     

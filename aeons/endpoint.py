@@ -3,13 +3,14 @@ import matplotlib.pyplot as plt
 from scipy.special import gammainc, gamma, logsumexp, gammaincinv, loggamma
 
 from aeons.regress import analytic_lm_params, GaussianRegress
-from aeons.utils import points_at_iteration, generate_Xs, reject_outliers, logXf_formula, add_logZ, calc_true_endpoint
+from aeons.utils import *
 from aeons.likelihoods import full
 
 
 class EndModel:
     def __init__(self, samples):
-        self.samples = add_logZ(samples)
+        samples['logZs'] = np.logaddexp.accumulate(samples.logw())
+        self.samples = samples
         self.logX_mean = np.array(samples.logX())
         self.logL = np.array(samples.logL)
         self.L = np.exp(self.logL)
@@ -22,24 +23,27 @@ class EndModel:
         true_endpoint = self.true_endpoint(epsilon)
         return self.logX_mean[true_endpoint]
 
-    def data(self, ndead):
+    def data(self, ndead, live=False):
         points = points_at_iteration(self.samples, ndead)
         logL = np.array(points.logL)
         nk = np.array(points.nlive)
-        logZdead = logsumexp(points.logw()[:ndead])
-        return logL, nk, logZdead
+        logZdead = self.logZs.iloc[ndead]
+        X_mean = X_mu(nk)
+        if live:
+            return logL[ndead:], X_mean[ndead:], nk, logZdead
+        return logL, X_mean, nk, logZdead
 
     def logXfs(self, method, iterations, Nset=10, trunc=15, epsilon=1e-3, **kwargs):
         N = len(iterations)
         logXfs = np.zeros(N)
         logXfs_std = np.zeros(N)
         for i, ndead in enumerate(iterations):
-            logL, nk, logZdead = self.data(ndead)
+            logL, X_mean, nk, logZdead = self.data(ndead)
             logXf_i = np.zeros(Nset)
             for j in range(Nset):
                 X = generate_Xs(nk)
                 theta = method(logL[ndead:], X[ndead:], **kwargs)
-                logXf_i[j] = logXf_formula(theta, logZdead, X[ndead], epsilon)
+                logXf_i[j] = logXf_formula(theta, logZdead, X_mean[ndead], epsilon)
             logXf_i = logXf_i[~np.isnan(logXf_i)]
             logXf_i = reject_outliers(logXf_i)
             logXfs[i] = np.mean(logXf_i)
