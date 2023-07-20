@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.optimize import least_squares
 from aeons.likelihoods import full
+from aeons.utils import logZ_formula
 
 
 def sigma_squared_analytic(d, X_i, logL_i):
@@ -47,12 +48,6 @@ def analytic_lm_params(logLdata, Xdata, d0, bounds=(0, np.inf)):
     """Returns [logLmax, d, sigma] using analytic LM method"""
     d, = analytic_lm(logLdata, Xdata, d0, bounds=bounds).x
     return params_from_d(logLdata, Xdata, d)
-
-
-def logZ_formula(logPmax, H, D, details=False):
-    if details:
-        print(f"logPr_max: {logPmax}, Hessian: {- 1/2 * np.log(abs(np.linalg.det(H)))}")
-    return logPmax - 1/2 * np.log(abs(np.linalg.det(H))) + D/2 * np.log(2*np.pi)
 
 
 class GaussianRegress:

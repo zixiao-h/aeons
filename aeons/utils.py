@@ -1,4 +1,5 @@
 import numpy as np
+import numba as nb
 import matplotlib.pyplot as plt
 from scipy.special import gamma, gammainc, logsumexp, gammaincinv
 
@@ -69,7 +70,14 @@ def points_at_iteration(samples, ndead):
     points = samples[samples.logL_birth < logL_k]
     nk = np.concatenate([points.nlive[:ndead], np.arange(nlive+1, 1, -1)])
     points = points.assign(nlive=nk)
+    points = points.reset_index(drop=True)
     return points
+
+def navgs(iterations, nk, nlive):
+    navgs = np.zeros_like(iterations)
+    for i, ndead in enumerate(iterations):
+        navgs[i] = np.mean(nk[int(ndead):-nlive])
+    return navgs
 
 def logX_mu(nk):
     """Calculates the mean of logX at each iteration given the live point distribution for a NS run"""
@@ -81,10 +89,8 @@ def X_mu(nk):
 
 def logt_sample(n):
     """Generate logt for given number of live points n"""
-    p = np.random.rand()
+    p = np.random.rand(len(n))
     return 1/n * np.log(p)
-logt_sample = np.vectorize(logt_sample)
-
 
 def generate_Xs(nk, iterations=None):
     """Generates the Xs at each iteration in a run with live point distribution nk"""
@@ -95,6 +101,10 @@ def generate_Xs(nk, iterations=None):
         return np.take(Xs, iterations)
     return Xs
 
+def logZ_formula(logPmax, H, D, details=False):
+    if details:
+        print(f"logPr_max: {logPmax}, Hessian: {- 1/2 * np.log(abs(np.linalg.det(H)))}")
+    return logPmax - 1/2 * np.log(abs(np.linalg.det(H))) + D/2 * np.log(2*np.pi)
 
 def logXf_formula(theta, logZdead, Xi, epsilon=1e-3):
     logLmax, d, sigma = theta

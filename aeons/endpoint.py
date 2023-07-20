@@ -13,7 +13,7 @@ class EndModel:
         self.samples = samples
         self.logX_mean = np.array(samples.logX())
         self.logL = np.array(samples.logL)
-        self.L = np.exp(self.logL)
+        self.L = np.exp(self.logL - self.logL.max())
         self.logZs = samples['logZs']
 
     def true_endpoint(self, epsilon=1e-3):
