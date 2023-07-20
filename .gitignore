@@ -4,3 +4,6 @@ test_samples/
 __pycache__/
 .ipynb_checkpoints/
 *.pdf
+lcdm/
+klcdm/
+*.txt
