@@ -40,11 +40,15 @@ def read_from_txt(filename):
             data.append(np.fromstring(line.rstrip('\n'), sep=','))
     return data
 
-def get_samples(which='lcdm', chain='BAO'):
-    filename = f'{aeons_dir}/samples/{which}/{which}_{chain}.pickle'
-    samples = pickle_in(filename)
-    name = f'{which}_{chain}'
-    return name, samples
+def get_samples(path):
+    """
+    Example usage:
+    path="lcdm/lensing_BAO" or "toy/planck_gaussian" or "gp"
+    """
+    root = f"{aeons_dir}/samples/"
+    samples = pickle_in(root+path+".pickle")
+    name = path
+    return path, samples
 
 def data_split(logLlive, Xlive, splits=1, trunc=None):
     if trunc is not None:
