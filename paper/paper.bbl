@@ -1,0 +1,70 @@
+\begin{thebibliography}{}
+\makeatletter
+\relax
+\def\mn@urlcharsother{\let\do\@makeother \do\$\do\&\do\#\do\^\do\_\do\%\do\~}
+\def\mn@doi{\begingroup\mn@urlcharsother \@ifnextchar [ {\mn@doi@}
+  {\mn@doi@[]}}
+\def\mn@doi@[#1]#2{\def\@tempa{#1}\ifx\@tempa\@empty \href
+  {http://dx.doi.org/#2} {doi:#2}\else \href {http://dx.doi.org/#2} {#1}\fi
+  \endgroup}
+\def\mn@eprint#1#2{\mn@eprint@#1:#2::\@nil}
+\def\mn@eprint@arXiv#1{\href {http://arxiv.org/abs/#1} {{\tt arXiv:#1}}}
+\def\mn@eprint@dblp#1{\href {http://dblp.uni-trier.de/rec/bibtex/#1.xml}
+  {dblp:#1}}
+\def\mn@eprint@#1:#2:#3:#4\@nil{\def\@tempa {#1}\def\@tempb {#2}\def\@tempc
+  {#3}\ifx \@tempc \@empty \let \@tempc \@tempb \let \@tempb \@tempa \fi \ifx
+  \@tempb \@empty \def\@tempb {arXiv}\fi \@ifundefined
+  {mn@eprint@\@tempb}{\@tempb:\@tempc}{\expandafter \expandafter \csname
+  mn@eprint@\@tempb\endcsname \expandafter{\@tempc}}}
+
+\bibitem[\protect\citeauthoryear{Ashton et~al.,}{Ashton
+  et~al.}{2022}]{physical_scientists}
+Ashton G.,  et~al., 2022, \mn@doi [Nature Reviews Methods Primers]
+  {10.1038/s43586-022-00121-x}, 2
+
+\bibitem[\protect\citeauthoryear{Feroz, Hobson  \& Bridges}{Feroz
+  et~al.}{2009}]{multinest}
+Feroz F.,  Hobson M.~P.,   Bridges M.,  2009, \mn@doi [Monthly Notices of the
+  Royal Astronomical Society] {10.1111/j.1365-2966.2009.14548.x}, 398, 1601
+
+\bibitem[\protect\citeauthoryear{Fowlie, Handley  \& Su}{Fowlie
+  et~al.}{2021}]{plateaus}
+Fowlie A.,  Handley W.,   Su L.,  2021, \mn@doi [Monthly Notices of the Royal
+  Astronomical Society] {10.1093/mnras/stab590}, 503, 1199
+
+\bibitem[\protect\citeauthoryear{Handley}{Handley}{2019}]{anesthetic}
+Handley W.,  2019, \mn@doi [Journal of Open Source Software]
+  {10.21105/joss.01414}, 4, 1414
+
+\bibitem[\protect\citeauthoryear{Handley \& Lemos}{Handley \&
+  Lemos}{2019}]{Handley_2019}
+Handley W.,  Lemos P.,  2019, \mn@doi [Physical Review D]
+  {10.1103/physrevd.100.023512}, 100
+
+\bibitem[\protect\citeauthoryear{Handley, Hobson  \& Lasenby}{Handley
+  et~al.}{2015}]{polychord}
+Handley W.~J.,  Hobson M.~P.,   Lasenby A.~N.,  2015, \mn@doi [Monthly Notices
+  of the Royal Astronomical Society] {10.1093/mnras/stv1911}, 453, 4385
+
+\bibitem[\protect\citeauthoryear{Higson, Handley, Hobson  \& Lasenby}{Higson
+  et~al.}{2019}]{dynamic_ns}
+Higson E.,  Handley W.,  Hobson M.,   Lasenby A.,  2019, \mn@doi [Statistics
+  and Computing] {10.1007/s11222-018-9844-0}, 29, 891–913
+
+\bibitem[\protect\citeauthoryear{Sivia \& Skilling}{Sivia \&
+  Skilling}{2006}]{sivia}
+Sivia D.~S.,  Skilling J.,  2006, Data Analysis: A bayesian tutorial (Oxford
+  Science Publications).
+Oxford University Press
+
+\bibitem[\protect\citeauthoryear{Skilling}{Skilling}{2006}]{skilling}
+Skilling J.,  2006, \mn@doi [Bayesian Analysis] {10.1214/06-ba127}, 1
+
+\bibitem[\protect\citeauthoryear{Yallup, Handley, Hobson, Lasenby  \&
+  Lemos}{Yallup et~al.}{2022}]{split}
+Yallup D.,  Handley W.,  Hobson M.,  Lasenby A.,   Lemos P.,  2022, Split
+  personalities in Bayesian Neural Networks: the case for full marginalisation
+  (\mn@eprint {arXiv} {2205.11151})
+
+\makeatother
+\end{thebibliography}
