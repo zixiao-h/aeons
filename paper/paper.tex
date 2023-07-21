@@ -340,7 +340,14 @@ In general, it is well known (to those who know such things) that the anatomy of
 \end{equation}
 namely the posterior average of the log likelihood is $d/2$ less than the maximum, and the variance of the loglikelihood over the posterior is $\frac{d}{2}$. Whilst this is exact for gaussians, this provides a good rule of thumb for other distributions. 
 
-For example, one may use this to explain why MCMC sampling is a very bad way to maximise, since even in the limit of a very large number of samples from the posterior $n$, the largest of these will be within a few $\sqrt{\frac{d}{2}}$ standard deviations of the mean, and therefore very far away from the maximum $\frac{d}{2}$ away.\footnote{TODO: can we do some analytics on the MCMC eaxmple as well?}
+For example, one may use this to explain why MCMC sampling is a very bad way to maximise, since even in the limit of a very large number of samples from the posterior $n$, the largest of these will be within a few $\sqrt{\frac{d}{2}}$ standard deviations of the mean, and therefore very far away from the maximum $\frac{d}{2}$ away.
+
+We can get someway to the analytics for MCMC. Similar arguments to below show that the distribution of the largest likelihood point found from a posterior is:
+\begin{equation}
+    P(x) = n \frac{e^{-x} x^{\frac{d}{2}-1} }{\Gamma\left(\frac{d}{2}\right)} {\left( \frac{\Gamma_{\frac{d}{2}}(x)}{\Gamma(\frac{d}{2})} \right)}^{n-1},
+\end{equation}
+where $x=2(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}_\mathrm{max}^\mathrm{posterior})$
+since if we have the CDF of a distribution as $F(x)$, then the lowest of n random variables is $\frac{d}{dx}( 1- (1-F(x))^n)$, and we the upper CDF for a $\chi^2_{d/2}$ distribution is $\Gamma_{\frac{d}{2}}(x)/\Gamma(\frac{d}{2})$. I have not yet been able to find an analytic expression/approximation for the center and width of this distribution.
 
 The same is true for nested sampling, although since it is not a posterior sampler, but a likelihood upward scanner, the argument is a little more subtle, which we work through below.
 
