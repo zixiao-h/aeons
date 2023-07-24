@@ -28,6 +28,7 @@ class EndModel:
         logL = np.array(points.logL)
         nk = np.array(points.nlive)
         X_mean = X_mu(nk)
+        logZdead = self.logZs.iloc[ndead]
         if live:
             return logL[ndead:], X_mean[ndead:], nk, logZdead
         return logL, X_mean, nk, logZdead
@@ -76,9 +77,12 @@ def theta_bandwidth(logL, X, print_split=False, splits=4):
 def theta_bandwidth_trunc(logL, X, trunc=15, **kwargs):
     theta = theta_bandwidth(logL, X)
     attempts = 1
-    while theta[1]/2 > 180:
-        theta = theta_bandwidth(logL[:-attempts*trunc], X[:-attempts*trunc], **kwargs)
-        attempts += 1
+    while (theta is None) or (theta[1]/2 > 180) or ((trunc * attempts) > len(logL)):
+        try:
+            theta = theta_bandwidth(logL[:-attempts*trunc], X[:-attempts*trunc], **kwargs)
+            attempts += 1
+        except:
+            attempts +=1
     if attempts > 1:
         print(f"{attempts} attempts")
     return theta
@@ -104,9 +108,10 @@ def fit_dlogZ(dlogZ, deg):
 
 class IncrementEndpoint:
     def __init__(self, samples, N_rolling):
-        self.samples = add_logZ(samples)
-        self.logZ = self.samples['logZ']
-        self.dlogZ = get_dlogZ(self.logZ)
+        samples['logZs'] = np.logaddexp.accumulate(samples.logw())
+        self.logZs = samples.logZs
+        self.samples = samples
+        self.dlogZ = get_dlogZ(self.logZs)
         self.dlogZ_rolling = get_dlogZ_rolling(self.dlogZ, N_rolling)
         self.N_rolling = N_rolling
         self.rolling_index = self.dlogZ_rolling.index.get_level_values(0)
@@ -117,7 +122,7 @@ class IncrementEndpoint:
         plt.plot(dlogZ.index.get_level_values(0), dlogZ.values)
 
     def calc_endpoint(self, epsilon=1e-3):
-        logZ = self.logZ
+        logZ = self.logZs
         logZ_tot = logZ.iloc[-1]
         logZ_f = np.log(1 - epsilon) + logZ_tot
         index_f = logZ[logZ > logZ_f].index.get_level_values(0)[0]
@@ -157,7 +162,7 @@ class IncrementEndpoint:
         ax2.set_ylim(0, dlogZ_fit.values[0]*1.5)
 
     def iterations(self, iteration, N_fit, epsilon=1e-3):
-        logZ_dead = self.logZ.loc[iteration]
+        logZ_dead = self.logZs.loc[iteration]
         index_pred, dlogZ_pred = self.pred(iteration, N_fit)
         logZ_live = dlogZ_pred.sum()
         logZ_tot = logZ_dead + logZ_live

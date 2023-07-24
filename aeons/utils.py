@@ -5,6 +5,9 @@ from scipy.special import gamma, gammainc, logsumexp, gammaincinv
 
 proj_dir = '/home/zixiao/Documents/III/project'
 aeons_dir = '/home/zixiao/Documents/III/project/aeons'
+lcdm_chains = ['BAO', 'lensing', 'lensing_BAO', 'lensing_SH0ES', 'planck', 'planck_BAO', \
+              'planck_lensing', 'planck_SH0ES', 'planck_lensing_BAO', 'planck_lensing_SH0ES', 'SH0ES']
+toy_chains = ["gauss_30_01", "wedding_20_001", "cauchy_10_0001", "planck_gaussian", "gp"]
 
 def pickle_dump(filename, data):
     """Function that pickles data into a file"""
@@ -40,15 +43,10 @@ def read_from_txt(filename):
             data.append(np.fromstring(line.rstrip('\n'), sep=','))
     return data
 
-def get_samples(path):
-    """
-    Example usage:
-    path="lcdm/lensing_BAO" or "toy/planck_gaussian" or "gp"
-    """
-    root = f"{aeons_dir}/samples/"
-    samples = pickle_in(root+path+".pickle")
-    name = path
-    return path, samples
+def get_samples(root, chain):
+    path = f"{aeons_dir}/samples/{root}/{chain}.pickle"
+    samples = pickle_in(path)
+    return chain, samples
 
 def data_split(logLlive, Xlive, splits=1, trunc=None):
     if trunc is not None:
@@ -57,16 +55,19 @@ def data_split(logLlive, Xlive, splits=1, trunc=None):
     X_split, logL_split = Xlive[start:], logLlive[start:]
     return logL_split, X_split
 
-def formatt(theta):
+def formatt(theta, sigfigs=2):
     logLmax, d, sigma = theta
-    return f"[{logLmax:.1e}, {d:.1f}, {sigma:.0e}]"
+    if isinstance(sigfigs, int):
+        return f"[{logLmax:.{sigfigs}e}, {d:.{sigfigs}f}, {sigma:.{sigfigs}e}]"
+    else:
+        s1, s2, s3 = sigfigs
+        return f"[{logLmax:.{s1}e}, {d:.{s2}f}, {sigma:.{s3}e}]"
 
 def reject_outliers(data):
     data = np.array(data)
     dev = np.abs(data - np.median(data))
     median_dev = np.median(dev)
     return data[dev < 2 * median_dev]
-
 
 def points_at_iteration(samples, ndead):
     nlive = samples.iloc[ndead].nlive
