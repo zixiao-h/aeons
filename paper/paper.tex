@@ -28,7 +28,7 @@
 
 
 \title[Approximating the end of nested sampling]{Approximating the end of nested sampling}
-\author[Z. Hu]{Zixiao Hu, Will Handley}
+\author[Z. Hu et. al]{Zixiao Hu, Artyom Baryshnikov, Will Handley}
 
 \begin{document}
 \label{firstpage}
@@ -37,7 +37,7 @@
 
 
 \begin{abstract}
-This project develops a technique to estimate the runtime of a nested sampling run at an intermediate iteration. The known likelihood at an iteration is fitted, then extrapolated using a Gaussian model likelihood, which allows the remaining evidence and final prior volume to be calculated. We find that the method succesfully recovers the true endpoint within standard error from the beginning for near-Gaussian likelihoods, and by the halfway point for non-Gaussian likelihoods while identifying the correct order of magnitude throughout. 
+This paper develops a technique to estimate the runtime of a nested sampling run at an intermediate iteration for any nested sampler. The known likelihood at an iteration is fitted, then extrapolated using a Gaussian model likelihood, which allows the remaining evidence and prior volume at termination to be calculated. We find that the method succesfully recovers the true endpoint within standard error from the beginning for near-Gaussian likelihoods. For non-Gaussian likelihoods, the estimate is still the correct order of magnitude and converges to the correct answer by the end of the run. 
 \end{abstract}
 
 \begin{keywords}
@@ -262,7 +262,7 @@ where $\gamma_k = \gamma\left(d/2, X_k^{2/d}/2\sigma^2\right)$ is the lower inco
 \end{multline}
 and $N_f$ is just  $-\nlive$ multiplied by this. 
 \par
-An useful feature is that the formula is robust when we are far away from the posterior bulk. In this phase, the inferred values of $\Like_\mathrm{max}$ turn out to be very uncertain and often divergent, but the dead evidence is also negligible, so $\Like_\mathrm{max}$ has little impact on the prediction. Once $Z_\mathrm{dead}$ becomes comparable to the live evidence $\Like_\mathrm{max}$ does begin to impact the prediction, but at this point we have reached the posterior bulk, so we expect $\Like_\mathrm{max}$ to be well-estimated and thus contribute in a useful way.
+Noting that the prediction depends on the \textit{ratio} $Z_\mathrm{dead}/\Like_\mathrm{max}$, an useful feature is that the formula is robust when we are far away from the posterior bulk. In this phase, the inferred values of $\Like_\mathrm{max}$ turn out to be very uncertain and often divergent, but the dead evidence is also negligible, so $\Like_\mathrm{max}$ has little impact on the prediction. Once $Z_\mathrm{dead}$ becomes comparable to the live evidence $\Like_\mathrm{max}$ does begin to impact the prediction, but at this point we have reached the posterior bulk, so we expect $\Like_\mathrm{max}$ to be well-estimated and thus contribute in a useful way.
 \par
 Note that the prediction procedure should not contribute any significant time complexity to the nested sampling run, since it involves no likelihood evaluations. 
 
