@@ -106,6 +106,7 @@ def fit_dlogZ(dlogZ, deg):
     return coefs
 
 
+from aeons.endpoint import *
 class IncrementEndpoint:
     def __init__(self, samples, N_rolling):
         samples['logZs'] = np.logaddexp.accumulate(samples.logw())
@@ -122,68 +123,74 @@ class IncrementEndpoint:
         plt.plot(dlogZ.index.get_level_values(0), dlogZ.values)
 
     def calc_endpoint(self, epsilon=1e-3):
-        logZ = self.logZs
-        logZ_tot = logZ.iloc[-1]
+        logZs = self.logZs
+        logZ_tot = logZs.iloc[-1]
         logZ_f = np.log(1 - epsilon) + logZ_tot
-        index_f = logZ[logZ > logZ_f].index.get_level_values(0)[0]
+        index_f = logZs[logZs > logZ_f].index.get_level_values(0)[0]
         return index_f
 
     def index(self, iteration):
         return self.dlogZ.iloc[iteration:].index.get_level_values(0).values
     
-    def dlogZ_fit(self, iteration, N_fit):
-        return self.dlogZ_rolling.iloc[iteration - N_fit - self.N_rolling : iteration - self.N_rolling]
+    def dlogZ_fit(self, iteration, steps, step):
+        index = np.arange(iteration - steps*step, iteration+step, step)
+        logZs = self.logZs.iloc[index]
+        return logZs.diff(1).dropna()
     
-    def pred(self, iteration, N_fit):
-        index = np.arange(iteration - N_fit, len(self.samples))
-        dlogZ_fit = self.dlogZ_fit(iteration, N_fit)
+    def pred(self, iteration, steps, step):
+        index = np.arange(iteration - steps*step, len(self.samples))
+        dlogZ_fit = self.dlogZ_fit(iteration, steps, step)
         coefs = fit_dlogZ(dlogZ_fit, 1)
         dlogZ_pred = poly.polyval(index, coefs)
         index_pred = index[dlogZ_pred > 0]
         dlogZ_pred = dlogZ_pred[dlogZ_pred > 0]
         return index_pred, dlogZ_pred
 
-    def plot_pred(self, iteration, N_fit):
-        index_pred, dlogZ_pred = self.pred(iteration, N_fit)
-        dlogZ_rolling = self.dlogZ_rolling
-        dlogZ_fit = self.dlogZ_fit(iteration, N_fit)
+    def plot_pred(self, iteration, steps, step):
+        index_pred, dlogZ_pred = self.pred(iteration, steps, step)
+        dlogZ_fit = self.dlogZ_fit(iteration, steps, step)
+        dlogZ_rolling = self.logZs.iloc[::step].diff(1).dropna()
 
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 3))
         ax1.plot(dlogZ_rolling.index.get_level_values(0), dlogZ_rolling)
         ax1.plot(dlogZ_fit.index.get_level_values(0), dlogZ_fit, color='deepskyblue')
         ax1.plot(index_pred, dlogZ_pred, color='orange', lw=1)
+        ax1.axvline(x = iteration, lw=.5, ls='--', color='deepskyblue')
         ax1.set_ylim(0, dlogZ_rolling.iloc[0])
+        ax1.set_ylabel('$d\log Z$')
 
         ax2.plot(dlogZ_rolling.index.get_level_values(0), dlogZ_rolling)
         ax2.plot(dlogZ_fit.index.get_level_values(0), dlogZ_fit, color='deepskyblue')
         ax2.plot(index_pred, dlogZ_pred, color='orange', lw=1)
         ax2.axvline(x = iteration, lw=.5, ls='--', color='deepskyblue')
-        ax2.set_xlim(iteration - N_fit, len(self.samples))
+        ax2.set_xlim(iteration - steps*step, len(self.samples))
         ax2.set_ylim(0, dlogZ_fit.values[0]*1.5)
+        plt.tight_layout()
 
-    def iterations(self, iteration, N_fit, epsilon=1e-3):
+    def iterations(self, iteration, steps, step, epsilon=1e-3):
         logZ_dead = self.logZs.loc[iteration]
-        index_pred, dlogZ_pred = self.pred(iteration, N_fit)
+        index_pred, dlogZ_pred = self.pred(iteration, steps, step)
         logZ_live = dlogZ_pred.sum()
         logZ_tot = logZ_dead + logZ_live
         logZ_f = np.log(1 - epsilon) + logZ_tot
         index_f = index_pred[np.argmax([logZ_dead + dlogZ_pred.cumsum() > logZ_f])]
         return logZ_dead, logZ_tot, index_f
     
-    def predictions(self, N, N_fit):
+    def predictions(self, N, steps, step):
         true_end = self.true_endpoint
-        iterations = np.linspace(N_fit, true_end, N, endpoint=False).astype(int) # start at N_fit
+        iterations = np.linspace(steps*step + self.N_rolling, true_end, N, endpoint=False).astype(int) # start at steps, step
         predictions = np.zeros(N)
         for i, iteration in enumerate(iterations):
-            try:
-                predictions[i] = self.iterations(iteration, N_fit)[-1]
-            except:
-                print(f'Iteration {iteration} invalid')
+            # try:
+                # predictions[i] = self.iterations(iteration, steps, step)[-1]
+            # except:
+                # print(f'Iteration {iteration} invalid')
+            predictions[i] = self.iterations(iteration, steps, step)[-1]
         return iterations, predictions
     
-    def plot_predictions(self, N, N_fit):
+    def plot_predictions(self, N, steps, step):
         true_end = self.true_endpoint
-        iterations, predictions = self.predictions(N, N_fit)
+        iterations, predictions = self.predictions(N, steps, step)
         plt.plot(iterations, predictions)
         plt.plot(iterations, iterations, lw=1, ls='--', color='deepskyblue')
         plt.axhline(y=true_end, lw=1, ls='--')

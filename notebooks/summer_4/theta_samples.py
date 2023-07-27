@@ -37,4 +37,3 @@ def call_polychord(logL, X, file_root, nlive=50):
     from anesthetic import read_chains
     samples = read_chains(settings.base_dir + '/' + settings.file_root)
     return samples
-

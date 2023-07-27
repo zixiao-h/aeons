@@ -44,7 +44,7 @@ def plot_std(xvals, y_means, y_stds, true, ylim=None, ax=None):
     if isinstance(ylim, float):
         ax.set_ylim(0, true*ylim)
     elif isinstance(ylim, tuple):
-        ax.set_ylim(*ylim)
+        ax.set_ylim(ylim[0]*true, ylim[1]*true)
 
     
 def plot_split(model, ndead, splits=2, trunc=None):
