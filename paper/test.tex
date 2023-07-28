@@ -1,17 +1,28 @@
-\documentclass[10pt, a4paper]{article}
-\usepackage[utf8]{inputenc}
+\documentclass[10pt, twocolumn]{article}
 \usepackage[margin=.8in, footskip=0.5in]{geometry}
 \usepackage{graphicx}
+\usepackage{amsmath}
 
 \begin{document}
+Below is a typical output from \textsc{PolyChord} midway through a nested sampling run.
+\begin{verbatim}
+Predicted endpoint: 25054 +/- 242
+Progress: [=================>########] 72%
+___________________
+lives      |   500 |
+phantoms   | 24310 |
+posteriors | 18018 |
+equals     |   245 |
+-------------------
+ncluster   =  1/1
+ndead      =  18018
+nposterior =  18018
+nequals    =  249
+nlike      =  4159049
+<nlike>    =  491.04 (9.82 per slice)
+log(Z)     =  -12.55 +/- 0.27
+\end{verbatim}
 
-\begin{figure}
-\begin{center}
-	\includegraphics[scale=0.3]{Figures/lcdm_predictions_colab.pdf}
-\end{center}
-\caption{}
-\label{fig:}
-\end{figure}
 
 
 \end{document}

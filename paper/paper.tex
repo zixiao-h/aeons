@@ -45,7 +45,7 @@ methods: data analysis -- methods: statistical
 \end{keywords}
 
 \section{Introduction}
-Nested sampling is a multi-purpose algorithm invented by John Skilling which simultaneously accomplishes the two tasks of Bayesian inference, model comparison and parameter estimation \citep{skilling}. It was immediately adopted for cosmology, and is now used in a wide range of physical sciences including particle physics, materials science \citep{physical_scientists} and machine learning \citep{split}. The core algorithm is unique for being the only algorithm which estimates high-dimensional volumes using \textit{order statistics}, which makes high-dimensional integration feasible. It also avoids problems faced by traditional Bayesian algorithms, such as multi-modality.
+Nested sampling is a multi-purpose algorithm invented by John Skilling which simultaneously accomplishes the two tasks of Bayesian inference, model comparison and parameter estimation \citep{skilling}. It was immediately adopted for cosmology, and is now used in a wide range of physical sciences including particle physics, materials science \citep{physical_scientists} and machine learning \citep{split}. The core algorithm is unique for being the only algorithm which estimates volumes using \textit{order statistics}, which makes high-dimensional integration feasible. It also avoids problems faced by traditional Bayesian algorithms, such as multi-modality.
 \par
 Many instances of software for nested sampling exist, including popular implementations such as \textsc{MultiNest} \citep{multinest} and \textsc{PolyChord} \citep{polychord} which provide flexible options for nested sampling runs, as well as post-processing packages such as \textsc{anesthetic} \citep{anesthetic} to obtain and plot sample statistics. However, currently no such software is able to estimate how long a given run should last. This is of high importance to the end user, who has no indication in the middle of a run whether it will take minutes, or weeks and months to finish; even an order of magnitude estimate is useful compared to the status quo of complete ignorance.
 \par
@@ -130,7 +130,7 @@ The full nested sampling procedure is given in algorithm \ref{alg:ns}.
 \subsection{Uncertainties and the posterior bulk}\label{subsec:Uncertainties and the posterior bulk}
 \begin{figure}
 \begin{center}
-	\includegraphics[scale=]{Figures/LX.pdf}
+	\includegraphics{Figures/LX.pdf}
 \end{center}
 \caption{Plot showing the likelihood and the posterior weights $\Like(X)X$. The bulk of posterior mass is contained within a region of size $e^{-\DKL}$, meaning one must iterate through at least $n\DKL$ steps to fully explore the posterior.}
 \label{fig:LX}
@@ -138,7 +138,7 @@ The full nested sampling procedure is given in algorithm \ref{alg:ns}.
 
 \begin{figure}
 \begin{center}
-	\includegraphics[scale=]{Figures/X_samples.pdf}
+	\includegraphics{Figures/X_samples.pdf}
 \end{center}
 \caption{Plot showing samples of $\log X$ plotted against the likelihoods of the sample points. The uncertainty increases with the number of steps taken.}
 \label{fig:X_samples}
@@ -205,7 +205,7 @@ We want to make an estimate of the number of iterations until the termination co
 Predictions can be made ahead of time because of the live points, which are sampled from higher likelihood regions that we have not yet compressed to. It is important to note that there will always be a small region which the live points do not penetrate because they are too diffuse, which can be seen in figure \ref{fig:dead_live_points}. 
 \begin{figure}
 \begin{center}
-	\includegraphics[scale=]{Figures/dead_live_points.pdf}
+	\includegraphics{Figures/dead_live_points.pdf}
 \end{center}
 \caption{Plots showing the state of a nested sampling at an intermediate iteration. The live points are samples from higher likelihood regions, which allow us to see the remaining likelihood ahead of time. However, there is always a small high likelihood region where we have no samples, simply because the live points are too diffuse.}
 \label{fig:dead_live_points}
@@ -273,7 +273,7 @@ We will therefore restrict ourselves to quantifying the uncertainties associated
 
 \begin{figure}
 \begin{center}
-	\includegraphics[scale=]{Figures/gauss_overfit.pdf}
+	\includegraphics{Figures/gauss_overfit.pdf}
 \end{center}
 \caption{Plot showing fits of the likelihood corresponding to different draws of $\log X$. The different realisations of the likelihood lead to a set of endpoint predictions, from which a mean and variance can be obtained.}
 \label{fig:gauss_overfit}
@@ -292,7 +292,7 @@ Let us now apply the methodology developed above in practice. We consider the fo
 \end{enumerate}
 \begin{figure}
 \begin{center}
-	\includegraphics[scale=]{Figures/wedding_3d.pdf}
+	\includegraphics{Figures/wedding_3d.pdf}
 \end{center}
 \caption{An example ``wedding cake" likelihood which has plateaus on top of a Gaussian profile}
 \label{fig:wedding_3d}
@@ -307,9 +307,9 @@ Results are shown in figure \ref{fig:toy_predictions}. For all cases, the predic
 The Cauchy likelihood shows the result when this is not the case; without samples in the bulk, a Gaussian extrapolation performs poorly. However, the correct order of magnitude is still obtained, which is a significant improvement on the status quo of complete ignorance. 
 \begin{figure*}
 \begin{center}
-	\subfloat[Gaussian: $d = 30$, $\sigma = 0.01$, $\DKL = 84$]{\includegraphics[scale=]{Figures/gauss_predictions.pdf}}
-	\subfloat[\centering Wedding cake: $d = 20$, $\sigma = 0.001$, $\alpha_\mathrm{w}=0.5$, $\DKL = 93$]{\includegraphics[scale=]{Figures/wedding_predictions.pdf}}
-	\subfloat[Cauchy: $d = 10$, $\gamma = 0.0001$, $\DKL = 48$]{\includegraphics[scale=]{Figures/cauchy_predictions.pdf}}
+	\subfloat[Gaussian: $d = 30$, $\sigma = 0.01$, $\DKL = 84$]{\includegraphics{Figures/gauss_predictions.pdf}}
+	\subfloat[\centering Wedding cake: $d = 20$, $\sigma = 0.001$, $\alpha_\mathrm{w}=0.5$, $\DKL = 93$]{\includegraphics{Figures/wedding_predictions.pdf}}
+	\subfloat[Cauchy: $d = 10$, $\gamma = 0.0001$, $\DKL = 48$]{\includegraphics{Figures/cauchy_predictions.pdf}}
 \end{center}
 \caption{Plot showing endpoint predictions for the toy likelihoods. The mean estimate is dark blue, while the shading shows the $1\sigma$ and $2\sigma$ uncertainties. For the first two likelihoods (which have Gaussian profile), the true endpoint falls within error for practically all of the run. The Cauchy likelihood is less well-estimated because it is highly non-Gaussian, with the true endpoint outside the reasonable uncertainty range but in the correct order of magnitude.}
 \label{fig:toy_predictions}
@@ -323,7 +323,7 @@ The likelihood model clearly performs better. For all of the chains, the true en
 Furthermore, the first four likelihoods are highly non-Gaussian, which validates the choice of a Gaussian likelihood model. For all chains, further work needs to be done to place a more accurate upper bound on the prediction uncertainty at early iterations. 
 \begin{figure*}
 \begin{center}
-	\includegraphics[scale=]{Figures/lcdm_predictions.pdf}
+	\includegraphics{Figures/lcdm_predictions.pdf}
 \end{center}
 \caption{Plots showing the endpoint predictions for the benchmark model as well as the likelihood approximation model. The likelihood model visibly performs better, managing to recover the true endpoint within around standard error at the halfway point for all the chains. The first four likelihoods are highly non-Gaussian, which validates the choice of a Gaussian model.}
 \label{fig:lcdm_predictions}
@@ -483,6 +483,7 @@ showing that in general the anatomy that nested sampling will finish at a contou
 \caption{}
 \label{fig:anatomy}
 \end{figure*}
+
 
 \section{Conclusions}\label{sec:Conclusions}
 In this project we have developed a model to estimate the endpoint of a nested sampling run, which has no precedent in the literature. This was done by predicting the form of the likelihood in the region that the samples have not reached, via fitting of a Gaussian model likelihood to the points already known to us. Assuming that the likelihood continues in a similar trajectory leads to an estimate of the remaining evidence, and hence the end iteration.  
