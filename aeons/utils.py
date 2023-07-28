@@ -139,4 +139,26 @@ def calc_endpoints(iterations, logXs, logXfs, logXfs_std, nlive):
     return endpoints, endpoints_std
 
 
-    
+def figsettings():
+    format = {
+        # Set figure size to (4,2)
+        "figure.figsize": (4, 2),
+        # Use LaTeX to write all text
+        "pgf.texsystem": "pdflatex",
+        "text.usetex": True,
+        "font.family": "serif",
+        # Use 11pt font in plots, to match 11pt font in document
+        "axes.labelsize": 9,
+        "font.size": 9,
+        # Make the legend/label fonts a little smaller
+        "legend.fontsize": 7,
+        "xtick.labelsize": 7,
+        "ytick.labelsize": 7,
+        'axes.linewidth': 0.5,
+        'axes.spines.top': False,
+        'axes.spines.right': False,
+        'patch.linewidth': 0.5,
+        'legend.fancybox': False,
+        'legend.shadow': False
+    }
+    plt.rcParams.update(format)

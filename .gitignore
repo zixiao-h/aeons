@@ -3,8 +3,10 @@ test_samples/
 *.pickle
 __pycache__/
 .ipynb_checkpoints/
-.pdf
+*.pdf
 lcdm/
 klcdm/
 *.txt
 *.gz
+!paper/Figures/*.pdf
+!paper/*.pdf
