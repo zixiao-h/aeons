@@ -1,4 +1,4 @@
-\documentclass[usenatbib]{mnras}
+\documentclass[usenatbib]{mnras} %{{{
 \usepackage[T1]{fontenc}
 \usepackage[pdftex]{graphicx}
 \usepackage{bm}
@@ -16,15 +16,16 @@
 \usepackage{txfonts}
 \usepackage{pgf}
 \usepackage{cleveref}
+%}}}
 
-\newcommand{\logL}{\{ \log \Like_i \}}
+\newcommand{\logL}{\{ \log \Like_i \}} %{{{
 \newcommand{\thetab}{\bm{\theta}}
 \newcommand{\logLm}{\log \Like_\mathrm{max}}
 \newcommand{\set}[1]{\{#1\}}
 \newcommand{\nlive}{n_\mathrm{live}}
 \newcommand{\Like}{\mathcal{L}}
 \newcommand{\DKL}{D_\mathrm{KL}}
-
+%}}}
 
 
 \title[Approximating the end of nested sampling]{Approximating the end of nested sampling}
@@ -130,7 +131,7 @@ The full nested sampling procedure is given in algorithm \ref{alg:ns}.
 \subsection{Uncertainties and the posterior bulk}\label{subsec:Uncertainties and the posterior bulk}
 \begin{figure}
 \begin{center}
-	\includegraphics{Figures/LX.pdf}
+	\includegraphics{figures/LX.pdf}
 \end{center}
 \caption{Plot showing the likelihood and the posterior weights $\Like(X)X$. The bulk of posterior mass is contained within a region of size $e^{-\DKL}$, meaning one must iterate through at least $n\DKL$ steps to fully explore the posterior.}
 \label{fig:LX}
@@ -138,7 +139,7 @@ The full nested sampling procedure is given in algorithm \ref{alg:ns}.
 
 \begin{figure}
 \begin{center}
-	\includegraphics{Figures/X_samples.pdf}
+	\includegraphics{figures/X_samples.pdf}
 \end{center}
 \caption{Plot showing samples of $\log X$ plotted against the likelihoods of the sample points. The uncertainty increases with the number of steps taken.}
 \label{fig:X_samples}
@@ -192,7 +193,7 @@ iteration & log Z  & $d\log Z$   \\
 \end{figure}
 \begin{figure}
   \centering
-  \includegraphics{Figures/linear_extrapolate.pdf}
+  \includegraphics{figures/linear_extrapolate.pdf}
   \captionof{figure}{Prediction of endpoint using linear extrapolation. The estimate is much lower than the true endpoint, primarily because of the long tail in $d\log Z$.}
   \label{fig:linear_extrapolate}
 \end{figure}
@@ -205,7 +206,7 @@ We want to make an estimate of the number of iterations until the termination co
 Predictions can be made ahead of time because of the live points, which are sampled from higher likelihood regions that we have not yet compressed to. It is important to note that there will always be a small region which the live points do not penetrate because they are too diffuse, which can be seen in figure \ref{fig:dead_live_points}. 
 \begin{figure}
 \begin{center}
-	\includegraphics{Figures/dead_live_points.pdf}
+	\includegraphics{figures/dead_live_points.pdf}
 \end{center}
 \caption{Plots showing the state of a nested sampling at an intermediate iteration. The live points are samples from higher likelihood regions, which allow us to see the remaining likelihood ahead of time. However, there is always a small high likelihood region where we have no samples, simply because the live points are too diffuse.}
 \label{fig:dead_live_points}
@@ -273,7 +274,7 @@ We will therefore restrict ourselves to quantifying the uncertainties associated
 
 \begin{figure}
 \begin{center}
-	\includegraphics{Figures/gauss_overfit.pdf}
+	\includegraphics{figures/gauss_overfit.pdf}
 \end{center}
 \caption{Plot showing fits of the likelihood corresponding to different draws of $\log X$. The different realisations of the likelihood lead to a set of endpoint predictions, from which a mean and variance can be obtained.}
 \label{fig:gauss_overfit}
@@ -292,7 +293,7 @@ Let us now apply the methodology developed above in practice. We consider the fo
 \end{enumerate}
 \begin{figure}
 \begin{center}
-	\includegraphics{Figures/wedding_3d.pdf}
+	\includegraphics{figures/wedding_3d.pdf}
 \end{center}
 \caption{An example ``wedding cake" likelihood which has plateaus on top of a Gaussian profile}
 \label{fig:wedding_3d}
@@ -307,9 +308,9 @@ Results are shown in figure \ref{fig:toy_predictions}. For all cases, the predic
 The Cauchy likelihood shows the result when this is not the case; without samples in the bulk, a Gaussian extrapolation performs poorly. However, the correct order of magnitude is still obtained, which is a significant improvement on the status quo of complete ignorance. 
 %\begin{figure*}
 %\begin{center}
-%	\subfloat[Gaussian: $d = 30$, $\sigma = 0.01$, $\DKL = 84$]{\includegraphics{Figures/gauss_predictions.pdf}}
-%	\subfloat[\centering Wedding cake: $d = 20$, $\sigma = 0.001$, $\alpha_\mathrm{w}=0.5$, $\DKL = 93$]{\includegraphics{Figures/wedding_predictions.pdf}}
-%	\subfloat[Cauchy: $d = 10$, $\gamma = 0.0001$, $\DKL = 48$]{\includegraphics{Figures/cauchy_predictions.pdf}}
+%	\subfloat[Gaussian: $d = 30$, $\sigma = 0.01$, $\DKL = 84$]{\includegraphics{figures/gauss_predictions.pdf}}
+%	\subfloat[\centering Wedding cake: $d = 20$, $\sigma = 0.001$, $\alpha_\mathrm{w}=0.5$, $\DKL = 93$]{\includegraphics{figures/wedding_predictions.pdf}}
+%	\subfloat[Cauchy: $d = 10$, $\gamma = 0.0001$, $\DKL = 48$]{\includegraphics{figures/cauchy_predictions.pdf}}
 %\end{center}
 %\caption{Plot showing endpoint predictions for the toy likelihoods. The mean estimate is dark blue, while the shading shows the $1\sigma$ and $2\sigma$ uncertainties. For the first two likelihoods (which have Gaussian profile), the true endpoint falls within error for practically all of the run. The Cauchy likelihood is less well-estimated because it is highly non-Gaussian, with the true endpoint outside the reasonable uncertainty range but in the correct order of magnitude.}
 %\label{fig:toy_predictions}
@@ -323,7 +324,7 @@ The likelihood model clearly performs better. For all of the chains, the true en
 Furthermore, the first four likelihoods are highly non-Gaussian, which validates the choice of a Gaussian likelihood model. For all chains, further work needs to be done to place a more accurate upper bound on the prediction uncertainty at early iterations. 
 %\begin{figure*}
 %\begin{center}
-%	\includegraphics{Figures/lcdm_predictions.pdf}
+%	\includegraphics{figures/lcdm_predictions.pdf}
 %\end{center}
 %\caption{Plots showing the endpoint predictions for the benchmark model as well as the likelihood approximation model. The likelihood model visibly performs better, managing to recover the true endpoint within around standard error at the halfway point for all the chains. The first four likelihoods are highly non-Gaussian, which validates the choice of a Gaussian model.}
 %\label{fig:lcdm_predictions}
@@ -354,7 +355,6 @@ since if we have the CDF of a distribution as $F(x)$, then the lowest of n rando
 \end{equation}
 
 The same is true for nested sampling, although since it is not a posterior sampler, but a likelihood upward scanner, the argument is a little more subtle, which we work through below.
-
 
 We will work with a Gaussian loglikelihood, lengthscale $\sigma$, defined in terms of prior volumes $0<X<1$
 \begin{equation}
@@ -479,7 +479,7 @@ showing that in general the anatomy that nested sampling will finish at a contou
 
 \begin{figure*}
 \begin{center}
-	\includegraphics{Figures/anatomy.pdf}
+	\includegraphics{figures/anatomy.pdf}
 \end{center}
 \caption{}
 \label{fig:anatomy}
