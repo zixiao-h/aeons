@@ -14,7 +14,7 @@ def plot_lx(samples):
     L_norm = np.exp(logL_norm)
     ax1.plot(logX_mean, L_norm, lw=1, color='black')
     ax2.plot(logX_mean, L_norm*np.exp(logX_mean), lw=1, color='navy')
-    ax1.set_title(f'logL_max = {logL.max():.2f}')
+    ax1.set_title(f'$\\log\\mathcal{{L}}_\\mathrm{{max}}$ = {logL.max():.2f}')
 
 def plot_logLx(samples, ndead=0, lives=True, ax=None, N_points=50, ms=2):
     points = points_at_iteration(samples, ndead)
@@ -34,29 +34,30 @@ def plot_logLx(samples, ndead=0, lives=True, ax=None, N_points=50, ms=2):
         ax.plot(X_mean[index], logL[index], '+', ms=ms, color='navy')
     ax.ticklabel_format(style='sci')
 
-def plot_std(xvals, y_means, y_stds, true, ylim=None, ax=None):
+def plot_std(xvals, y_means, y_stds, true=None, ylim=None, ax=None, color='deepskyblue', label=None):
     # plt.plot(xvals, y_means, lw=1, color='navy')
     if ax is None:
         fig, ax = plt.subplots(figsize=(4,2))
-    ax.fill_between(xvals, y_means - y_stds, y_means + y_stds, alpha=1, color='deepskyblue')
-    ax.fill_between(xvals, y_means - 2*y_stds, y_means + 2*y_stds, alpha=.2, color='deepskyblue')
-    ax.axhline(y=true, lw=1, color='navy')
-    if isinstance(ylim, float):
-        ax.set_ylim(0, true*ylim)
-    elif isinstance(ylim, tuple):
-        ax.set_ylim(ylim[0]*true, ylim[1]*true)
+    ax.fill_between(xvals, y_means - y_stds, y_means + y_stds, alpha=1, color=color, label=label)
+    ax.fill_between(xvals, y_means - 2*y_stds, y_means + 2*y_stds, alpha=.2, color=color)
+    if true is not None:
+        ax.axhline(y=true, lw=.5, color='red', ls='--')
+        if isinstance(ylim, float):
+            ax.set_ylim(0, true*ylim)
+        elif isinstance(ylim, tuple):
+            ax.set_ylim(ylim[0]*true, ylim[1]*true)
 
     
-def plot_split(model, ndead, splits=2, trunc=None):
+def plot_split(model, ndead, nlive, splits=2, trunc=None):
     logLlive, Xlive, nk, logZdead = model.data(ndead, live=True)
     regress = GaussianRegress(logLlive, Xlive)
     logXf = logXf_formula(regress.theta, logZdead, Xlive[0])
-    endpoint = calc_endpoints(ndead, np.log(Xlive[0]), logXf, 0.01, nlive=750)[0]
+    endpoint = calc_endpoints(ndead, np.log(Xlive[0]), logXf, 0.01, nlive=nlive)[0]
 
     logL_split, X_split = data_split(logLlive, Xlive, splits, trunc)
     regress_split = GaussianRegress(logL_split, X_split)
     logXf_split = logXf_formula(regress_split.theta, logZdead, Xlive[0])
-    endpoint_split = calc_endpoints(ndead, np.log(Xlive[0]), logXf_split, 0.01, nlive=750)[0]
+    endpoint_split = calc_endpoints(ndead, np.log(Xlive[0]), logXf_split, 0.01, nlive=nlive)[0]
 
     fig, axs = plt.subplots(1, 2, figsize=(8, 3))
     axs[0].plot(Xlive, logLlive, '+', ms=3)

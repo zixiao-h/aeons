@@ -5,8 +5,8 @@ from scipy.special import gamma, gammainc, logsumexp, gammaincinv
 
 proj_dir = '/home/zixiao/Documents/III/project'
 aeons_dir = '/home/zixiao/Documents/III/project/aeons'
-lcdm_chains = ['BAO', 'lensing', 'lensing_BAO', 'lensing_SH0ES', 'planck', 'planck_BAO', \
-              'planck_lensing', 'planck_SH0ES', 'planck_lensing_BAO', 'planck_lensing_SH0ES', 'SH0ES']
+lcdm_chains = ['BAO', 'lensing', 'lensing_BAO', 'lensing_SH0ES', 'SH0ES', 'planck', 'planck_BAO', \
+              'planck_lensing', 'planck_SH0ES', 'planck_lensing_BAO', 'planck_lensing_SH0ES']
 toy_chains = ["gauss_30_01", "wedding_20_001", "cauchy_10_0001", "planck_gaussian", "gp"]
 
 def pickle_dump(filename, data):
@@ -25,10 +25,12 @@ def pickle_in(filename):
 
 
 def write_to_txt(filename, data):
-    try:
-        open(filename, 'w').close()
-    except:
-        print(f'creating {filename}.txt')
+    import os
+    # Desired file path
+    # Create directories if they do not exist
+    directory = os.path.dirname(filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     with open(filename, 'a') as f:
         for item in data:
             if not np.shape(item):
@@ -44,7 +46,7 @@ def read_from_txt(filename):
     return data
 
 def get_samples(root, chain):
-    path = f"{aeons_dir}/samples/{root}/{chain}.pickle"
+    path = f"{aeons_dir}/data/samples/{root}/{chain}.pkl"
     samples = pickle_in(path)
     return chain, samples
 
@@ -63,26 +65,20 @@ def formatt(theta, sigfigs=2):
         s1, s2, s3 = sigfigs
         return f"[{logLmax:.{s1}e}, {d:.{s2}f}, {sigma:.{s3}e}]"
 
-def reject_outliers(data):
+def reject_outliers(data, degree=2):
     data = np.array(data)
     dev = np.abs(data - np.median(data))
     median_dev = np.median(dev)
-    return data[dev < 2 * median_dev]
+    return data[dev < degree * median_dev]
 
 def points_at_iteration(samples, ndead):
     nlive = samples.iloc[ndead].nlive
     logL_k = samples.iloc[ndead].logL
-    points = samples[samples.logL_birth < logL_k]
+    points = samples.loc[samples.logL_birth < logL_k]
     nk = np.concatenate([points.nlive[:ndead], np.arange(nlive+1, 1, -1)])
     points = points.assign(nlive=nk)
     points = points.reset_index(drop=True)
     return points
-
-def navgs(iterations, nk, nlive):
-    navgs = np.zeros_like(iterations)
-    for i, ndead in enumerate(iterations):
-        navgs[i] = np.mean(nk[int(ndead):-nlive])
-    return navgs
 
 def logX_mu(nk):
     """Calculates the mean of logX at each iteration given the live point distribution for a NS run"""
@@ -131,12 +127,19 @@ def calc_true_endpoint(logZ, epsilon=1e-3):
     index_f = logZ[logZ > logZ_f].index.get_level_values(0)[0]
     return index_f
 
-def calc_endpoints(iterations, logXs, logXfs, logXfs_std, nlive):
+def calc_endpoints(iterations, logXs, logXfs, logXfs_std, nlive, nconst=None, logXconst=None):
     """nlive can be an integer or an array"""
-    endpoints = iterations + iterations_rem(logXs, logXfs, nlive)
-    endpoints_higher = iterations + iterations_rem(logXs, logXfs - logXfs_std, nlive)
-    endpoints_std = endpoints_higher - endpoints
+    if nconst is None:
+        endpoints = iterations + (logXfs - logXs) * -nlive
+    else:
+        if logXconst is None:
+            raise ValueError("logXconst must be specified if nconst is specified")
+        endpoints = nconst + (logXfs - logXconst) * -nlive
+    endpoints_std = logXfs_std * -nlive
     return endpoints, endpoints_std
+
+def make_iterations(true_endpoint, N, start=0.05, end=1):
+    return np.linspace(start*true_endpoint, end*true_endpoint, N, endpoint=False).astype(int)
 
 
 def figsettings():
@@ -148,17 +151,51 @@ def figsettings():
         "text.usetex": True,
         "font.family": "serif",
         # Use 11pt font in plots, to match 11pt font in document
-        "axes.labelsize": 9,
-        "font.size": 9,
+        "axes.labelsize": 7,
+        "font.size": 7,
+        "axes.titlesize": 9,
         # Make the legend/label fonts a little smaller
         "legend.fontsize": 7,
         "xtick.labelsize": 7,
         "ytick.labelsize": 7,
         'axes.linewidth': 0.5,
-        'axes.spines.top': False,
-        'axes.spines.right': False,
         'patch.linewidth': 0.5,
         'legend.fancybox': False,
         'legend.shadow': False
     }
     plt.rcParams.update(format)
+    
+def get_logw(logL, logX, beta):
+    logL = np.array(logL)
+    logX = np.array(logX)
+    logw = beta*logL + logX
+    return logw
+
+def format_exp(num, decimals=1):
+    if num == 0:
+        return 0, 0
+    exp = 0
+    while abs(num) < 1:
+        num *= 10
+        exp -= 1
+    while abs(num) >= 10:
+        num /= 10
+        exp += 1
+    if num == 0:
+        return r'0'
+    if exp == 0:
+        return f'{np.round(num, decimals)}'
+    if decimals == 0:
+        return f"{int(np.round(num, 0))}\\times 10^{{{exp}}}"
+    else:
+        return f"{np.round(num, decimals)}\\times 10^{{{exp}}}"
+    
+def get_beta(points, ndead):
+    logX = points.logX().iloc[ndead]
+    if logX < -points.D_KL():
+        return 1
+    def func(beta):
+        return logX + points.set_beta(beta).D_KL()
+    from scipy import optimize
+    res = optimize.root_scalar(func, bracket=[0, 1])
+    return res.root

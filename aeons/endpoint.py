@@ -23,6 +23,9 @@ class EndModel:
         true_endpoint = self.true_endpoint(epsilon)
         return self.logX_mean[true_endpoint]
 
+    def points(self, ndead):
+        return points_at_iteration(self.samples, ndead)
+
     def data(self, ndead, live=False):
         points = points_at_iteration(self.samples, ndead)
         logL = np.array(points.logL)
@@ -48,7 +51,7 @@ class EndModel:
             logXf_i = reject_outliers(logXf_i)
             logXfs[i] = np.mean(logXf_i)
             logXfs_std[i] = np.std(logXf_i)
-            print(f"Iteration {ndead} complete, {len(logXf_i)} samples")
+            print('\r', f"Iteration {ndead} of {iterations[-1]}, {len(logXf_i)} samples", end='')
         return logXfs, logXfs_std
 
 def theta_basic(logL, X):
@@ -84,7 +87,7 @@ def theta_bandwidth_trunc(logL, X, trunc=15, **kwargs):
         except:
             attempts +=1
     if attempts > 1:
-        print(f"{attempts} attempts")
+        print(f"{attempts} attempts", end='\r')
     return theta
 
 def get_dlogZ(logZ):
@@ -106,7 +109,6 @@ def fit_dlogZ(dlogZ, deg):
     return coefs
 
 
-from aeons.endpoint import *
 class IncrementEndpoint:
     def __init__(self, samples, N_rolling):
         samples['logZs'] = np.logaddexp.accumulate(samples.logw())
@@ -157,7 +159,7 @@ class IncrementEndpoint:
         ax1.plot(index_pred, dlogZ_pred, color='orange', lw=1)
         ax1.axvline(x = iteration, lw=.5, ls='--', color='deepskyblue')
         ax1.set_ylim(0, dlogZ_rolling.iloc[0])
-        ax1.set_ylabel('$d\log Z$')
+        ax1.set_ylabel('$d\\log Z$')
 
         ax2.plot(dlogZ_rolling.index.get_level_values(0), dlogZ_rolling)
         ax2.plot(dlogZ_fit.index.get_level_values(0), dlogZ_fit, color='deepskyblue')

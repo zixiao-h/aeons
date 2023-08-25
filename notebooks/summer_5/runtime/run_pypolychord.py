@@ -12,11 +12,12 @@ from aeons.endpoint import theta_bandwidth_trunc
 #| The derived parameter is the squared radius
 
 nDims = 10
-nDerived = 0
+nDerived = 1
 sigma = 0.01
 
 def likelihood(theta):
     """ Simple Gaussian Likelihood"""
+
     nDims = len(theta)
     r2 = sum(theta**2)
     logL = -log(2*pi*sigma*sigma)*nDims/2.0
@@ -34,18 +35,18 @@ def prior(hypercube):
 #| the live points, dead points, weights and evidences
 
 def dumper(live, dead, logweights, logZ, logZerr):
+    # print(dead[-1])
     ndead = len(dead)
     nlive = len(live)
     if nlive == 0:
-        print(f"[{'='*50}>]", end='\n')
+        print(f"Endpoint: {ndead}")
+        print(f"[{'='*50}>] 100%", end='\n')
         return
     logL = live[:, -1]
     # Sort logL in ascending order
     logL = np.sort(logL)
     nk = np.concatenate([nlive * np.ones(ndead), np.arange(nlive, 0, -1)])
     X_mean = X_mu(nk)[ndead:]
-    # theta = analytic_lm_params(logL, X_mean, d0=2)
-    # theta = theta_bandwidth_trunc(logL, X_mean, trunc=5, splits=[1])
     Nset = 25
     logXfs = np.zeros(Nset)
     for i in range(Nset):
@@ -57,8 +58,8 @@ def dumper(live, dead, logweights, logZ, logZerr):
     endpoint, endpoint_std = calc_endpoints(len(dead), np.log(X_mean[0]), logXfs.mean(), logXfs.std(), nlive)
     end_predict = int(endpoint) + nlive
     # Print graphic showing progress of the run
-    print(f"Predicted endpoint: {end_predict} +/- {int(endpoint_std)}, progress {len(dead)/end_predict*100:.0f}%")
-    print(f"[{'='*int(len(dead)/end_predict*50)}>{'#'*(50-int(len(dead)/end_predict*50))}]", end='\n')
+    print(f"Predicted endpoint: {end_predict} +/- {int(endpoint_std)}, progress ")
+    print(f"[{'='*int(len(dead)/end_predict*50)}>{'#'*(50-int(len(dead)/end_predict*50))}] {len(dead)/end_predict*100:.0f}%", end='\n')
 
 #| Initialise the settings
 
@@ -69,7 +70,6 @@ settings.nlive = 500
 settings.do_clustering = False
 settings.read_resume = False
 settings.write_resume = False
-settings.write_prior = False
 settings.compression_factor = exp(-2)
 
 #| Run PolyChord
