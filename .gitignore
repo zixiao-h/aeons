@@ -10,3 +10,4 @@ klcdm/
 *.gz
 !paper/Figures/*.pdf
 !paper/*.pdf
+*.pkl
