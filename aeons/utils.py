@@ -11,7 +11,10 @@ toy_chains = ["gauss_30_01", "wedding_20_001", "cauchy_10_0001", "planck_gaussia
 
 def pickle_dump(filename, data):
     """Function that pickles data into a file"""
-    import pickle
+    import pickle, os
+    directory = os.path.dirname(filename)
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     pickle_out = open(filename, "wb")
     pickle.dump(data, pickle_out)
     pickle_out.close()
