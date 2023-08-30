@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.special import gammainc, gamma, logsumexp, gammaincinv, loggamma
 
-from aeons.regress import analytic_lm_params, GaussianRegress
+from aeons.regress import analytic_lm_params, GaussianRegress, params_from_d
 from aeons.utils import *
 from aeons.likelihoods import full
 
@@ -36,165 +36,55 @@ class EndModel:
             return logL[ndead:], X_mean[ndead:], nk, logZdead
         return logL, X_mean, nk, logZdead
 
-    def logXfs(self, method, iterations, Nset=10, trunc=15, epsilon=1e-3, **kwargs):
+    def logXfs(self, method, iterations, **kwargs):
+        """Method takes in arguments (ndead, logL, nk, logZdead, **kwargs) and returns logXfs_set"""
+        clear = kwargs.pop('clear', True)
         N = len(iterations)
         logXfs = np.zeros(N)
         logXfs_std = np.zeros(N)
         for i, ndead in enumerate(iterations):
-            logL, X_mean, nk, logZdead = self.data(ndead)
-            logXf_i = np.zeros(Nset)
-            for j in range(Nset):
-                X = generate_Xs(nk)
-                theta = method(logL[ndead:], X[ndead:], **kwargs)
-                logXf_i[j] = logXf_formula(theta, logZdead, X_mean[ndead], epsilon)
-            logXf_i = logXf_i[~np.isnan(logXf_i)]
-            logXf_i = reject_outliers(logXf_i)
-            logXfs[i] = np.mean(logXf_i)
-            logXfs_std[i] = np.std(logXf_i)
-            print('\r', f"Iteration {ndead} of {iterations[-1]}, {len(logXf_i)} samples", end='')
+            points = self.points(ndead)
+            try:
+                logXfs_set, message = method(points, ndead, **kwargs)
+                logXfs[i] = np.mean(logXfs_set)
+                logXfs_std[i] = np.std(logXfs_set)
+                if clear:
+                    print('\r', f"Iteration {ndead} of {iterations[-1]}, {message}", end='')
+                else:
+                    print(f"Iteration {ndead} of {iterations[-1]}, {message}")
+            except:
+                logXfs[i] = np.nan
+                logXfs_std[i] = np.nan
+                print(f"Iteration {ndead} of {iterations[-1]}, NaN")
         return logXfs, logXfs_std
 
-def theta_basic(logL, X):
-    return analytic_lm_params(logL, X, d0=1)
 
-def theta_bandwidth(logL, X, print_split=False, splits=4):
-    logZmax = -np.inf
-    theta_best = None
-    split_best = None
-    if isinstance(splits, int):
-        splits = np.arange(1, splits + 1)
-    for split in splits:
-        start = len(X) - int(len(X)/split)
-        Xs, logLs = X[start:], logL[start:]
-        regress = GaussianRegress(logLs, Xs)
-        theta = regress.theta
-        logZ = regress.logZ()
-        if logZ > logZmax:
-            logZmax = logZ
-            theta_best = theta
-            split_best = split
-    if print_split:
-        print(f"Best split: {split_best}, {theta_best}")
-    return theta_best
-
-def theta_bandwidth_trunc(logL, X, trunc=15, **kwargs):
-    theta = theta_bandwidth(logL, X)
-    attempts = 1
-    while (theta is None) or (theta[1]/2 > 180) or ((trunc * attempts) > len(logL)):
-        try:
-            theta = theta_bandwidth(logL[:-attempts*trunc], X[:-attempts*trunc], **kwargs)
-            attempts += 1
-        except:
-            attempts +=1
-    if attempts > 1:
-        print(f"{attempts} attempts", end='\r')
-    return theta
-
-def get_dlogZ(logZ):
-    logZ = pd.Series(logZ)
-    dlogZ = logZ.diff(1)[1:]
-    return dlogZ
-
-def get_dlogZ_rolling(dlogZ, N_rolling):
-    dlogZ = pd.Series(dlogZ)
-    dlogZ_rolling = dlogZ.rolling(N_rolling).mean()
-    dlogZ_rolling.dropna(inplace=True)
-    return dlogZ_rolling
-
-import numpy.polynomial.polynomial as poly
-def fit_dlogZ(dlogZ, deg):
-    x = dlogZ.index.get_level_values(0).values
-    y = dlogZ.values
-    coefs = poly.polyfit(x, y, deg)
-    return coefs
+def logXf_basic(points, ndead, Nset=25):
+    logL, X_mean, nk, logZdead = data(points)
+    logLd = logL[ndead:]
+    logXf_set = np.zeros(Nset)
+    for i in range(Nset):
+        X = generate_Xs(nk)
+        Xd = X[ndead:]
+        theta = analytic_lm_params(logLd, Xd, d0=1)
+        logXf_set[i] = logXf_formula(theta, logZdead, X_mean[ndead])
+    logXf_set = logXf_set[~np.isnan(logXf_set)]
+    logXf_set = reject_outliers(logXf_set)
+    return logXf_set, f'{len(logXf_set)} samples'
 
 
-class IncrementEndpoint:
-    def __init__(self, samples, N_rolling):
-        samples['logZs'] = np.logaddexp.accumulate(samples.logw())
-        self.logZs = samples.logZs
-        self.samples = samples
-        self.dlogZ = get_dlogZ(self.logZs)
-        self.dlogZ_rolling = get_dlogZ_rolling(self.dlogZ, N_rolling)
-        self.N_rolling = N_rolling
-        self.rolling_index = self.dlogZ_rolling.index.get_level_values(0)
-        self.true_endpoint = self.calc_endpoint() # using default value of 1e-3
-
-    def plot_dlogZ(self):
-        dlogZ = self.dlogZ
-        plt.plot(dlogZ.index.get_level_values(0), dlogZ.values)
-
-    def calc_endpoint(self, epsilon=1e-3):
-        logZs = self.logZs
-        logZ_tot = logZs.iloc[-1]
-        logZ_f = np.log(1 - epsilon) + logZ_tot
-        index_f = logZs[logZs > logZ_f].index.get_level_values(0)[0]
-        return index_f
-
-    def index(self, iteration):
-        return self.dlogZ.iloc[iteration:].index.get_level_values(0).values
-    
-    def dlogZ_fit(self, iteration, steps, step):
-        index = np.arange(iteration - steps*step, iteration+step, step)
-        logZs = self.logZs.iloc[index]
-        return logZs.diff(1).dropna()
-    
-    def pred(self, iteration, steps, step):
-        index = np.arange(iteration - steps*step, len(self.samples))
-        dlogZ_fit = self.dlogZ_fit(iteration, steps, step)
-        coefs = fit_dlogZ(dlogZ_fit, 1)
-        dlogZ_pred = poly.polyval(index, coefs)
-        index_pred = index[dlogZ_pred > 0]
-        dlogZ_pred = dlogZ_pred[dlogZ_pred > 0]
-        return index_pred, dlogZ_pred
-
-    def plot_pred(self, iteration, steps, step):
-        index_pred, dlogZ_pred = self.pred(iteration, steps, step)
-        dlogZ_fit = self.dlogZ_fit(iteration, steps, step)
-        dlogZ_rolling = self.logZs.iloc[::step].diff(1).dropna()
-
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 3))
-        ax1.plot(dlogZ_rolling.index.get_level_values(0), dlogZ_rolling)
-        ax1.plot(dlogZ_fit.index.get_level_values(0), dlogZ_fit, color='deepskyblue')
-        ax1.plot(index_pred, dlogZ_pred, color='orange', lw=1)
-        ax1.axvline(x = iteration, lw=.5, ls='--', color='deepskyblue')
-        ax1.set_ylim(0, dlogZ_rolling.iloc[0])
-        ax1.set_ylabel('$d\\log Z$')
-
-        ax2.plot(dlogZ_rolling.index.get_level_values(0), dlogZ_rolling)
-        ax2.plot(dlogZ_fit.index.get_level_values(0), dlogZ_fit, color='deepskyblue')
-        ax2.plot(index_pred, dlogZ_pred, color='orange', lw=1)
-        ax2.axvline(x = iteration, lw=.5, ls='--', color='deepskyblue')
-        ax2.set_xlim(iteration - steps*step, len(self.samples))
-        ax2.set_ylim(0, dlogZ_fit.values[0]*1.5)
-        plt.tight_layout()
-
-    def iterations(self, iteration, steps, step, epsilon=1e-3):
-        logZ_dead = self.logZs.loc[iteration]
-        index_pred, dlogZ_pred = self.pred(iteration, steps, step)
-        logZ_live = dlogZ_pred.sum()
-        logZ_tot = logZ_dead + logZ_live
-        logZ_f = np.log(1 - epsilon) + logZ_tot
-        index_f = index_pred[np.argmax([logZ_dead + dlogZ_pred.cumsum() > logZ_f])]
-        return logZ_dead, logZ_tot, index_f
-    
-    def predictions(self, N, steps, step):
-        true_end = self.true_endpoint
-        iterations = np.linspace(steps*step + self.N_rolling, true_end, N, endpoint=False).astype(int) # start at steps, step
-        predictions = np.zeros(N)
-        for i, iteration in enumerate(iterations):
-            # try:
-                # predictions[i] = self.iterations(iteration, steps, step)[-1]
-            # except:
-                # print(f'Iteration {iteration} invalid')
-            predictions[i] = self.iterations(iteration, steps, step)[-1]
-        return iterations, predictions
-    
-    def plot_predictions(self, N, steps, step):
-        true_end = self.true_endpoint
-        iterations, predictions = self.predictions(N, steps, step)
-        plt.plot(iterations, predictions)
-        plt.plot(iterations, iterations, lw=1, ls='--', color='deepskyblue')
-        plt.axhline(y=true_end, lw=1, ls='--')
-        plt.ylim(0, true_end*1.5)
-        return iterations, predictions
+def logXf_beta_DKL(points, ndead, Nset=25):
+    logL, X_mean, nk, logZdead = data(points)
+    beta_DKL = get_beta(points, ndead)
+    dG = points.set_beta(beta_DKL).d_G(Nset).values
+    logLd = logL[ndead:]
+    logXf_set = np.zeros(Nset)
+    for i in range(Nset):
+        X = generate_Xs(nk)
+        Xd = X[ndead:]
+        d = np.random.choice(dG)
+        theta = params_from_d(logLd, Xd, d)
+        logXf_set[i] = logXf_formula(theta, logZdead, X_mean[ndead])
+    logXf_set = logXf_set[~np.isnan(logXf_set)]
+    # logXf_set = reject_outliers(logXf_set)
+    return logXf_set, f"{len(logXf_set)} samples, {dG.mean():.1f}"

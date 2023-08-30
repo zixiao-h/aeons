@@ -48,10 +48,31 @@ def read_from_txt(filename):
             data.append(np.fromstring(line.rstrip('\n'), sep=','))
     return data
 
-def get_samples(root, chain):
-    path = f"{aeons_dir}/data/samples/{root}/{chain}.pkl"
+def get_samples(root, chain, reduced=True):
+    if reduced:
+        path = f"{aeons_dir}/data/samples/{root}/{chain}_reduced.pkl"
+    else:
+        path = f"{aeons_dir}/data/samples/{root}/{chain}.pkl"
     samples = pickle_in(path)
     return chain, samples
+
+def reduce_samples(samples):
+    samples = samples.drop_labels()
+    samples = samples.loc[:, samples.columns.intersection(['nlive', 'logL', 'logL_birth'])]
+    return samples
+
+def save_samples(root, name, samples):
+    samples_reduced = reduce_samples(samples)
+    pickle_dump(f'{aeons_dir}/data/samples/{root}/{name}.pkl', samples)
+    pickle_dump(f'{aeons_dir}/data/samples/{root}/{name}_reduced.pkl', samples_reduced)
+    
+def data(points):
+    logL = points.logL.to_numpy()
+    nk = points.nlive.to_numpy()
+    X_mean = X_mu(nk)
+    logZdead = points.logZ()
+    return logL, X_mean, nk, logZdead 
+
 
 def data_split(logLlive, Xlive, splits=1, trunc=None):
     if trunc is not None:
@@ -112,6 +133,9 @@ def logZ_formula(logPmax, H, D, details=False):
 
 def logXf_formula(theta, logZdead, Xi, epsilon=1e-3):
     logLmax, d, sigma = theta
+    # If d causes overflow, use DKL approximation
+    if np.isinf(gamma(d/2)):
+        return d/2 * np.log(2*np.pi*np.e*sigma**2)
     loglive = np.log( gamma(d/2) * gammainc(d/2, Xi**(2/d)/(2*sigma**2)) )
     logdead = logZdead - logLmax - (d/2)*np.log(2) - d*np.log(sigma) + np.log(2/d)
     logend = logsumexp([loglive, logdead]) + np.log(epsilon)
@@ -144,6 +168,8 @@ def calc_endpoints(iterations, logXs, logXfs, logXfs_std, nlive, nconst=None, lo
 def make_iterations(true_endpoint, N, start=0.05, end=1):
     return np.linspace(start*true_endpoint, end*true_endpoint, N, endpoint=False).astype(int)
 
+def get_logXs(samples, iterations):
+    return samples.logX().iloc[iterations]
 
 def figsettings():
     format = {
