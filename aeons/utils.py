@@ -1,7 +1,7 @@
 import numpy as np
 import numba as nb
 import matplotlib.pyplot as plt
-from scipy.special import gamma, gammainc, logsumexp, gammaincinv
+from scipy.special import gamma, gammainc, logsumexp, gammaincinv, loggamma
 
 proj_dir = '/home/zixiao/Documents/III/project'
 aeons_dir = '/home/zixiao/Documents/III/project/aeons'
@@ -139,6 +139,8 @@ def logXf_formula(theta, logZdead, Xi, epsilon=1e-3):
     loglive = np.log( gamma(d/2) * gammainc(d/2, Xi**(2/d)/(2*sigma**2)) )
     logdead = logZdead - logLmax - (d/2)*np.log(2) - d*np.log(sigma) + np.log(2/d)
     logend = logsumexp([loglive, logdead]) + np.log(epsilon)
+    if (logend > 709) or (np.exp(logend)/gamma(d/2) > 1):
+        return d/2 * np.log(2) + d*np.log(sigma) + loggamma(1 + d/2) + np.log(epsilon)
     xf_reg = gammaincinv(d/2, np.exp(logend)/gamma(d/2))
     return d/2 * np.log(2*sigma**2 * xf_reg)
 
