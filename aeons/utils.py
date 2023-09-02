@@ -8,6 +8,7 @@ aeons_dir = '/home/zixiao/Documents/III/project/aeons'
 lcdm_chains = ['BAO', 'lensing', 'lensing_BAO', 'lensing_SH0ES', 'SH0ES', 'planck', 'planck_BAO', \
               'planck_lensing', 'planck_SH0ES', 'planck_lensing_BAO', 'planck_lensing_SH0ES']
 toy_chains = ["gauss_30_01", "wedding_20_001", "cauchy_10_0001", "planck_gaussian", "gp"]
+test_chains = ['gauss_32', 'cauchy_83', 'BAO', 'planck']
 
 def pickle_dump(filename, data):
     """Function that pickles data into a file"""
@@ -29,11 +30,11 @@ def pickle_in(filename):
 
 def write_to_txt(filename, data):
     import os
-    # Desired file path
-    # Create directories if they do not exist
     directory = os.path.dirname(filename)
     if not os.path.exists(directory):
         os.makedirs(directory)
+    # Clear file
+    open(filename, 'w').close()
     with open(filename, 'a') as f:
         for item in data:
             if not np.shape(item):
@@ -48,11 +49,11 @@ def read_from_txt(filename):
             data.append(np.fromstring(line.rstrip('\n'), sep=','))
     return data
 
-def get_samples(root, chain, reduced=True):
+def get_samples(chain, reduced=True):
     if reduced:
-        path = f"{aeons_dir}/data/samples/{root}/{chain}_reduced.pkl"
+        path = f"{aeons_dir}/data/samples/{chain}_reduced.pkl"
     else:
-        path = f"{aeons_dir}/data/samples/{root}/{chain}.pkl"
+        path = f"{aeons_dir}/data/samples/{chain}.pkl"
     samples = pickle_in(path)
     return chain, samples
 
@@ -61,10 +62,10 @@ def reduce_samples(samples):
     samples = samples.loc[:, samples.columns.intersection(['nlive', 'logL', 'logL_birth'])]
     return samples
 
-def save_samples(root, name, samples):
+def save_samples(name, samples):
     samples_reduced = reduce_samples(samples)
-    pickle_dump(f'{aeons_dir}/data/samples/{root}/{name}.pkl', samples)
-    pickle_dump(f'{aeons_dir}/data/samples/{root}/{name}_reduced.pkl', samples_reduced)
+    pickle_dump(f'{aeons_dir}/data/samples/{name}.pkl', samples)
+    pickle_dump(f'{aeons_dir}/data/samples/{name}_reduced.pkl', samples_reduced)
     
 def data(points):
     logL = points.logL.to_numpy()
@@ -133,15 +134,12 @@ def logZ_formula(logPmax, H, D, details=False):
 
 def logXf_formula(theta, logZdead, Xi, epsilon=1e-3):
     logLmax, d, sigma = theta
-    # If d causes overflow, use DKL approximation
-    if np.isinf(gamma(d/2)):
-        return d/2 * np.log(2*np.pi*np.e*sigma**2)
-    loglive = np.log( gamma(d/2) * gammainc(d/2, Xi**(2/d)/(2*sigma**2)) )
+    if (logZdead - (logLmax + np.log(d/2) + d/2 * np.log(2*sigma**2)) < np.log(epsilon)):
+        return d/2 * np.log(2) + d*np.log(sigma) + loggamma(1 + d/2) + np.log(epsilon)
+    loglive = loggamma(d/2) + np.log(gammainc(d/2, Xi**(2/d)/(2*sigma**2)) )
     logdead = logZdead - logLmax - (d/2)*np.log(2) - d*np.log(sigma) + np.log(2/d)
     logend = logsumexp([loglive, logdead]) + np.log(epsilon)
-    if (logend > 709) or (np.exp(logend)/gamma(d/2) > 1):
-        return d/2 * np.log(2) + d*np.log(sigma) + loggamma(1 + d/2) + np.log(epsilon)
-    xf_reg = gammaincinv(d/2, np.exp(logend)/gamma(d/2))
+    xf_reg = gammaincinv(d/2, np.exp(logend - loggamma(d/2)))
     return d/2 * np.log(2*sigma**2 * xf_reg)
 
 

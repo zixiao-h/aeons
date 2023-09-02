@@ -73,7 +73,7 @@ def logXf_basic(points, ndead, Nset=25):
     return logXf_set, f'{len(logXf_set)} samples'
 
 
-def logXf_beta_DKL(points, ndead, Nset=25):
+def logXf_dG_DKL(points, ndead, Nset=25):
     logL, X_mean, nk, logZdead = data(points)
     beta_DKL = get_beta(points, ndead)
     dG = points.set_beta(beta_DKL).d_G(Nset).values
