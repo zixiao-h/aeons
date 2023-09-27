@@ -11,8 +11,8 @@ fig.delaxes(axs[-1])
 for i, chain in enumerate(lcdm_chains):
     ax = axs[i]
     axd = ax.twinx()
-    name, samples = get_samples('lcdm', chain)
-    iterations, logXfs, logXfs_std, true_endpoint = read_from_txt(f"{aeons_dir}/data/predictions/lcdm/nos/{chain}_bt_25_nos.txt")
+    name, samples = get_samples(chain)
+    iterations, logXfs, logXfs_std, true_endpoint = read_from_txt(f"{aeons_dir}/data/predictions/dG_range/02_{chain}.txt")
     iterations_dG, d_Gs, d_Gs_std = read_from_txt(f'{aeons_dir}/data/predictions/lcdm/dG/{chain}_dG.txt')
     logXf_true = samples.logX().iloc[int(true_endpoint[0])]
     logXs = samples.logX().iloc[iterations]
@@ -22,7 +22,7 @@ for i, chain in enumerate(lcdm_chains):
     axs[i].set_title(name, fontsize=8)
 # Make legend with custom patches
 from matplotlib.patches import Patch
-lines = [Patch(color='deepskyblue', label='Endpoints'), Patch(color='lightsalmon', label='Effective dimensionality')]
+lines = [Patch(color='deepskyblue', label='Endpoints'), Patch(color='lightsalmon', label='Sample dimensionality')]
 fig.legend(handles=lines, ncol=1, fontsize=6, bbox_to_anchor=(0.97, 0.2))
 fig.tight_layout()
 fig.supxlabel('$-\\log X$')
