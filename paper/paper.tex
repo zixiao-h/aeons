@@ -12,15 +12,18 @@
 \usepackage{hyperref}
 \usepackage[capitalise]{cleveref}
 \usepackage{fancyvrb}
+\usepackage{enumitem}
 \usepackage{xcolor}
 \usepackage{txfonts}
 \usepackage[T1]{fontenc}
 %}}}
 
 
+\renewcommand\thesubsubsection{\Alph{subsubsection}.}
 \newcommand{\nlive}{n_\mathrm{live}}
 \newcommand{\Like}{\mathcal{L}}
 \newcommand{\DKL}{\mathcal{D}_\mathrm{KL}}
+\newcommand{\logLmax}{\log \Like_\mathrm{max}}
 
 \title[Approximating the end of nested sampling]{Approximating the end of nested sampling}
 \author[Z. Hu et. al]{Zixiao Hu, Artyom Baryshnikov, Will Handley}
@@ -41,7 +44,7 @@ methods: data analysis -- methods: statistical
 \section{Introduction}
 Nested sampling is a multi-purpose algorithm invented by John Skilling which simultaneously functions as a probabilistic sampler, integrator and optimiser \citep{skilling}. It was immediately adopted for cosmology, and is now used in a wide range of physical sciences including particle physics, materials science \citep{physical_scientists} and machine learning \citep{sparse_reconstruction}. The core algorithm is unique for estimating volumes by \textit{counting}, which makes high-dimensional integration feasible. It also avoids problems faced by traditional Bayesian algorithms, such as multi-modality.
 \par
-The order of magnitude runtime of an algorithm, that is, whether termination is hours or weeks and months away, is of high importance to the end user. Currently, existing implementations of nested sampling either do not give any indication of the runtime, or only provide crude estimates. In the latter case, these are always underpredictions which usually fail to recover the correct order of magnitude. 
+The order of magnitude runtime of an algorithm, that is, whether termination is hours or weeks and months away, is of high importance to the end user. Currently, existing implementations of nested sampling \citep{multinest, polychord} either do not give an indication of runtime, or only provide crude measures of progress that do not directly correspond to the runtime. 
 \par
 This paper sets out a more principled manner of endpoint estimation for nested sampling at each intermediate stage, the key idea being to use the existing samples to predict the likelihood in the region we have yet to sample from. Outline of paper.
 \begin{figure}
@@ -67,41 +70,323 @@ log(Z)     =  -12.55 +/- 0.27
 \end{figure}
 
 \section{Background}
-
-
-\subsection{The progress of a nested sampling run}
-Present some theoretical results on anatomy of nested sampling run.
-
-\subsection{Current prior volume}
-
-\subsection{Current log-likelihood}
-
-\subsubsection{Dimensionality}
-Define Bayesian model dimensionality
-Goal to observe how the number of constrained parameters changes throughout the run
-Only works at the end of the run, because BMD is a property of the posterior - heat capacity analogy
-Need to transform intermediate set of samples into a posterior. Useful tool is the transformation using beta. 
-Which beta to use? Several existing temperatures in the literature - microcanonical temperature, canonical temperature used by Habeck.
-Propose a temperature from Bayesian inference. 
-
-
-Ridge geometries contain phase transitions in nested sampling, because the dimensionality of the samples increases throughout the run. 
+Let us begin with a brief description of the nested sampling algorithm to establish the necessary notation. For a given likelihood $\mathcal{L}(\theta)$ and prior $\pi(\theta)$, nested sampling simultaneously calculates the Bayesian evidence
+\begin{equation}\label{eq:evidence}
+	\mathcal{Z} = \int \mathcal{L}(\theta)\ \pi(\theta)\ \mathrm{d}\theta
+\end{equation}
+while producing samples of the posterior distribution
+\begin{equation}
+	\mathcal{P}(\theta) = \frac{\mathcal{L}(\theta) \pi(\theta)}{\mathcal{Z}}.
+\end{equation}
+The algorithm operates by maintaining a set of $\nlive$ \textit{live points} sampled from the prior, which can vary in number throughout the run \citep{dynamic_ns}. At each iteration, the point with the lowest likelihood is removed and added to a list of \textit{dead points}. A new point is then drawn from the prior, subject to the constraint that it must have a higher likelihood than the latest dead point. Repeating the procedure leads to the live points shrinking around peaks in the likelihood.
 \par
-As an example, consider an elongated Gaussian in a unit hypercube. 
+The integral in \cref{eq:evidence} is then evaluated by transformation to a one-dimensional integral over the \textit{prior volume} $X$
+\begin{equation}
+	\mathcal{Z} = \int_0^1 \mathcal{L}(X)\ \mathrm{d}X \approx \frac{1}{2}\sum_{i=1} \mathcal{L}(X_{i-1}-X_{i+1}),
+\end{equation}
+where $X(\mathcal{L})$ is the fraction of the prior with a likelihood greater than $\mathcal{L}$. The prior volumes $X_i$ are unknown, but can be statistically estimated as follows: one can define a \textit{shrinkage factor} $t_i$ at each iteration $X_{i} = t_i X_{i-1}$, such that
+\begin{equation}\label{eq:X_dist}
+	X_i = \prod_{k=1}^i t_k.
+\end{equation}
+The $t_i$ are the maximum of $\nlive$ points drawn from $[0,1]$, so follow the distribution
+\begin{equation}\label{eq:t_dist}
+	P(t_i) = \nlive t_i^{\nlive-1}, \quad \langle\log t_i\rangle = -\frac{1}{\nlive}, \quad \mathrm{Var}(\log t_i) = \frac{1}{\nlive^2}.
+\end{equation}
+The algorithm terminates when an user-specified condition is met; a popular choice is to terminate when the evidence in the live points falls below some fraction $\epsilon$ of the accumulated evidence e.g. $10^{-3}$. The remaining live points are then killed off one by one without replacement and added to the evidence.
+\par
+Uncertainties in the evidence are dominated by the spread in the prior volume distribution, and the simplest way to estimate them is by Monte Carlo sampling over sets of $\bm{t}$. For any given problem, the uncertainty in $\log \mathcal{Z}$ is proportional to $1/\sqrt{\nlive}$, so $\nlive$ sets the resolution.
+
+\section{The anatomy of a nested sampling run}
+The following section aims to make an inventory of the information available to us at an intermediate iteration $i^{*}$, which we shall eventually use to make endpoint predictions. We present an anatomy of the progression of a nested sampling run in terms of the prior volume compression, the log-likelihood increase, the inferred temperature schedule, and the dimensionality of the samples.
+
+\subsection{Prior volume}
+The key feature of nested sampling is that the sampling is controlled by prior volume compression. The task is to find the posterior typically lying in a tiny fraction of the prior volume, a total compression which is quantified by the average information gain, or \textit{Kullback-Leibler divergence}:
+\begin{equation}\label{eq:DKL}
+   \DKL = \int \mathcal{P}(\theta) \log \frac{\mathcal{P}(\theta)}{\pi(\theta)}\ \mathrm{d}\theta. 
+\end{equation}
+The bulk of the posterior lies within a prior volume $X = e^{-\DKL}$, which is the target compression. One gets there by iteratively taking steps of size $\Delta \log X_i = -1/n_i$, so that 
+\begin{equation}
+    \mathrm{E}(\log X_i) = -\sum_{k=1}^i \frac{1}{n_k}, \quad \mathrm{Var}(\log X_i) = \sum_{k=1}^i \frac{1}{n_k^2}.
+\end{equation}
+A constant step size in $\log X$ corresponds to a geometrically decreasing measure for the dead points (as shown in fig X), which is exactly needed to overcome the curse of dimensionality.
+\par
+Dead measure plot
+\par
+The same is not true for the live points, which are uniformly distributed in prior volume. As a result, the maximum live point is found at 
+\begin{equation}\label{eq:Xmin}
+	\mathrm{E}[\log X_\mathrm{min}^{\mathrm{live}}] = \mathrm{E}[\log X_*] - \sum_{k=1}^{\nlive} \frac{1}{n_k} \approx -\frac{i_*}{\nlive} - \log \nlive - \gamma,
+\end{equation}
+with variance
+\begin{equation}
+	\mathrm{Var}[\log X_\mathrm{min}^{\mathrm{live}}] = \mathrm{Var}[\log X_*] + \sum_{k=1}^{\nlive} \frac{1}{n_k^2} \approx \frac{i_*}{\nlive^2} + \frac{\pi^2}{6}, 
+\end{equation}
+where the large $\nlive$ limit is taken for the approximation to the harmonic series, $\gamma$ being the Euler-Mascheroni constant.
+\par
+Hence the live points only get us a factor of $\log \nlive$ closer to the posterior bulk. In other words, it is not until we are around $\log \nlive$ away from $\log X = \DKL$ that the samples look anything like the posterior. One can see from \cref{eq:DKL} that the divergence increases linearly with dimension, so for large dimensionalities and typical live point numbers $\lesssim 1000$, this does not happen until near the end of the run.
+\par
+Intuitively, it is because for a sharply peaked likelihood the live points are too diffuse to land there with any significant probability for most of the run.
+
+\subsection{Log-likelihood}
+It is also useful to observe the distribution of the live and dead points in log-likelihood. We choose to examine a representative case of the $d$-dimensional multivariate Gaussian:
+\begin{equation}\label{eq:gaussian_logL}
+    \log \Like = \logLmax - X^{2/d}/2\sigma^2
+\end{equation}
+with maximum point $\logLmax$ and lengthscale $\sigma$ to get an insight into the analytics. The likelihood monotonically increases towards $\logLmax$, with the posterior samples eventually concentrated around the bulk at
+\begin{equation}
+    \langle\log\Like\rangle_\mathcal{P} = \log\mathcal{L}_\mathrm{max} - \frac{d}{2},  \quad \mathrm{Var}(\log\mathcal{L})_\mathcal{P} = \frac{d}{2}.
+\end{equation}
+We can again find the size of each step in log-likelihood, as well as the expected location of the maximum live point. Define a likelihood normalised by the distance to the maximum 
+\begin{equation}
+    y = \frac{\log\mathcal{L}-\log\mathcal{L}_*}{\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}_*}
+    \label{eq:normalised_likelihood}
+\end{equation}
+as a measure of how far a point is between the current likelihood and the maximum; $y=0$ corresponds to $\log\mathcal{L}_*$ and $y=1$ to $\log\mathcal{L}_\mathrm{max}$. At each iteration, $y$ increases by roughly
+\begin{equation}
+    \lim_{\nlive \to \infty}\Delta y \approx \frac{\mathrm{d} y}{\mathrm{d}\log X} \Delta \log X = \frac{2}{d \nlive}  
+\end{equation}
+in the large $\nlive$ limit. We can again sum the harmonic series to see that the maximum live point is expected to be at $y = 2\log \nlive/d$: a very small fraction in high dimensions, showing again that until the end the live points are far from the posterior bulk, and certainly nowhere near the maximum.
+\par
+The above also implies that the normalised distance between the highest and second highest live point is roughly $2/d$. Before reaching the posterior bulk, $\logLmax - \log\Like^{*} > d/2$, so the log-likelihood distance between the two points is larger than one, hence at least an order of magnitude apart in likelihood. It is therefore typically the case that nearly all of the posterior mass is concentrated in a single point, the maximum live point, until the very end of the run when the prior volumes have shrunk enough to compensate.
+
+\subsubsection*{Aside: nested sampling as a maximiser}
+Previous literature \citep{Akrami_2010, Feroz_2011} has explored the potential for nested sampling to be used as a global maximiser, given its ability to handle multi-modalities. In particular, the latter authors emphasised that posterior samplers such as nested sampling find the bulk of the \textit{mass}, not the maximum of the distribution, but that this can be remedied by tightening the termination criterion. We now use the machinery we have developed to put this statement in more quantitative terms. 
+\par
+A more rigorous derivation (see Appendix) shows that the maximum live point has mean and variance
+\begin{equation}\label{eq:ylivemax}
+	\lim_{d,\nlive\to\infty} y_\mathrm{max}^\mathrm{live} \sim \frac{2\log \nlive}{d} \pm \sqrt{\frac{2}{3}}\frac{\pi}{d}.
+\end{equation}
+Now let us take the dead point to be the termination point with likelihood $\log\Like_\mathrm{end}$ and prior volume $X_\mathrm{end}$, so that
+\begin{equation}
+	\epsilon = \frac{\int_0^{X_\mathrm{end}} \mathcal{L}\ \mathrm{d}X}{\int_0^\infty \mathcal{L}\ \mathrm{d}X}.
+\end{equation}
+Note that we have assumed that prior effects are negligible (so $1=\infty$), and that $\epsilon \ll 1$ so that the denominator is approximately the accumulated evidence. Computing this for \cref{eq:gaussian_logL}, we find the answer in terms of lower incomplete gamma functions
+\begin{equation}
+\epsilon = 1- \frac{\Gamma_{d/2}\left(X_\mathrm{end}^{2/d}/2\sigma^2\right)}{\Gamma(d/2)}.
+\end{equation}
+Taking the $X_\mathrm{end}\ll (\sqrt{2}\sigma)^d$ limit (almost certainly valid at termination) we find
+\begin{equation}
+    \lim_{X_\mathrm{end}\ll (\sqrt{2}\sigma)^d} \epsilon \approx \frac{X_\mathrm{end}}{(\sqrt{2}\sigma)^d \ \Gamma(1+\frac{d}{2})} = \frac{(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}_\mathrm{end})^{\frac{d}{2}}}{\Gamma(1+\frac{d}{2})}.
+\end{equation}
+We thus have an expression relating $\mathcal{L}_\mathrm{end}$ at termination to the termination fraction $\epsilon$. This becomes yet more pleasing in the large $d$ limit, since $\epsilon^{2/d}\to 1$, we find via a Stirling approximation:
+\begin{equation}
+    \lim_{d\to\infty} \log\mathcal{L}_\mathrm{end} \approx \log\mathcal{L}_\mathrm{max} - \frac{d}{2e}.
+\end{equation}
+In the event that we keep $\epsilon$ in, we replace $\frac{d}{2e}\to \frac{d}{2e}\epsilon^{2/d}$, so we can of course battle the $\frac{d}{2e}$ term, but this becomes exponentially difficult in high dimensions.
+\par
+Putting this together, taking $\mathcal{L}_*$ in \cref{eq:normalised_likelihood} to be $\mathcal{L}_\mathrm{end}$, and combining this with \cref{eq:ylivemax} we find
+\begin{equation}
+    \boxed{
+        \log{\mathcal{L}}_\mathrm{max}^\mathrm{live} \approx \log\mathcal{L}_\mathrm{max} - \frac{d}{2e} + \frac{\log n}{e} \pm \frac{\pi}{\sqrt{6}e}
+    },
+\end{equation}
+showing that in general nested sampling will finish at a contour $d/2e$ away from the maximum log-likelihood. The final set of $n$ live points gets you $\log n/2e$ closer, with a chance of getting $\sim\pi/\sqrt{6}e=0.472$ closer still by statistical fluctuation. 
+
+\subsection{Temperature}
+\subsubsection*{Motivations}
+As shown in the previous section, midway through the run nearly all of the posterior mass is concentrated at a single point. However, this does not capture the \textit{structure} of the posterior that has been explored and all of the information it provides. 
+\par
+We have the potential to fix this because nested sampling is invariant to monotonic transformations; softening the likelihood via $L \to L^{\beta}$ brings the likelihoods closer together. Large $\beta$ and small $\beta$ both discard information, but there is an inbetween range of $\beta$ which is significant, because it causes the posterior mass to be concentrated at the current point; see plot. 
+\par
+At this point relevant to note the correspondence between Bayesian inference and statistical mechanics, from which the above transform is derived. If one takes $- \log \Like$ to be the energy $E_i$ etc, then $\beta$ is the inverse temperature $1/T$. Softening or hardening is equivalent to setting the temperature of the samples, which one can easily do in NS because it is athermal; get the posterior for $\Like^{\beta}$ trivially by reweighting.  
+\par
+Bayesian inference has a correspondence to statistical mechanics in that one can equate the parameters to microstates $i$, the negative log-lihood to the microstate energy $E_i$, and the prior to the density of states $g_i$. One can generalise Bayes' theorem to 
+\begin{equation}
+p(E_i) = \frac{g_i e^{-\beta E_i}}{Z(\beta)} \quad \leftrightarrow \quad \mathcal{P}_\beta(\theta) = \frac{\mathcal{L}^{\beta}(\theta)\pi(\theta)}{Z(\beta)}
+\end{equation}
+Clear similarity to thermodynamic integration, which uses temperature as a control parameter to construct intermediate distributions between the prior at $\beta = 0$ and posterior at $\beta = 1$. NS uses compression instead of temp, sidestepping difficulty of designing the annealing schedule. However, it still does something similar, starting with unweighted prior samples and ending with likelihood-weighted prior samples i.e. the posterior, during which $\beta$ presumably increases from 0 to 1. Inferring the temperature from above, one would hope to get another quantity that determines the progress of a run. 
+\par
+Important difference to annealing is that here we are working backwards; instead of choosing a temperature to sample at, we obtain the temperature from the samples after the fact. 
+An useful discussion can be found in \citet{demons}, which we summarise here as a starting point. In contrast to annealing methods which attempt to sample from a series of canonical ensembles $\pi(\theta) \exp{-\beta \mathrm{E}(\theta)}$, nested sampling evolves a series of \textit{microcanonical} ensembles and computing the density of states by tracking the compression. 
+\par
+We now present several methods of obtaining the temperature that one can plausibly consider to be the current temperature of a nested sampling run.
+
+\subsubsection{Microcanonical temperature}
+As discussed in Skilling's original paper, the density of states, given by the negative slope of the log-likelihood curve, directly corresponds to a temperature;
+\begin{equation}
+    \beta^* = - \frac{\mathrm{d} \log X}{\mathrm{d} \log \Like} \Bigg\vert_{\log \Like^{*}}.
+\end{equation}
+This is the microcanonical temperature $\partial S/\partial E$, where the volume entropy $S=\log X$ and the energy $E=-\log \Like$. Its value can be easily obtained via finite difference of the $\log \Like$ and $\log X$ intervals, albeit subject to an arbitrary window size for the differencing (in practice, we find that above a threshold of around 10 iterations the result is fairly insensitive to this choice). 
+
+\subsubsection{Canonical temperature}
+Briefly considered by Habeck, it is the temperature of an ensemble whose average energy is the current energy, which one can obtain by inverting 
+\begin{equation}
+    \langle \log \Like \rangle_{\mathcal{P}_\beta} = \log \Like^{*}
+\end{equation}
+
+\subsubsection{Bayesian temperature}
+We furthermore propose a temperature that is obtained via Bayesian inference, which returns a distribution rather than a point estimate for $\beta$. Since each value of $\beta$ leads to a different likelihood $\Like^{\beta}$, one can consider the posterior distribution as a function of $\log X$ to be \textit{conditioned} on $\beta$. We can therefore write
+\begin{equation}
+   \mathcal{P}(\log X \mid \beta) = \frac{\Like^{\beta}(X) X}{\mathcal{Z(\beta)}}.
+\end{equation}
+What we would really like is the distribution of $\beta$ at the present iteration, so the natural step is to invert this via Bayes' rule;
+\begin{equation}
+    P\left(\beta \mid \log X^{*}\right) = \frac{\mathcal{P}\left(\log X^{*} \mid \beta\right) P\left(\beta\right)}{P\left(\log X\right)}.
+\end{equation}
+As with all Bayesian analyses, the distribution of $\beta$ is fixed up to a prior, which we choose to be uniform in $\beta$. The obtained temperatures are consistent with the previous two choices, which may seem oddly coincidental. However, closer inspection reveals that large values of $P(\beta \mid \log X^{*})$ are the temperatures with a large value of the posterior at the present contour, normalised by the corresponding evidence. Thus the peak is just the temperature that causes the posterior to be sharply peaked at the current contour i.e. the location of the posterior bulk. Heuristically, it is doing a similar thing as the previous methods. 
+
+
+\subsubsection*{Comparisons}
+Unlike annealing, the temperature is not monotonic with progress, which is precisely what allows nested sampling to handle phase transitions. 
+\par
+Free parameter; choose definition based on what you would like to use $\beta$ to do. 
+
+\subsection{Dimensionality}
+We can immediately use the inferred temperature to track how the effective dimensionality of the posterior changes throughout the run, which was previously inaccessible. \citet{Handley_2019} demonstrated that at the end of a run, a measure of the number of constrained parameters is given by the Bayesian model dimensionality (BMD), defined as the posterior variance of the information content:
+\begin{equation}
+\frac{\tilde{d}}{2} = \int \mathcal{P}(\theta) \left(\log \frac{\mathcal{P}(\theta)}{\pi(\theta)} - \DKL\right)^2 \: \mathrm{d}\theta
+= \langle \mathcal{I}^2 \rangle_\mathcal{P} - \langle \mathcal{I} \rangle^2_\mathcal{P}.
+\end{equation}
+\par
+Calculating the quantity using intermediate set of weighted samples (which is concentrated at a single point) leads to vanishing variance, hence also dimensionality. However, we can recover the structure of the posterior together with the true dimensionality by adjusting the temperature. Dimensionality estimates are plotted in fig X for a spherical Gaussian of various dimensions. The Bayesian temperature appears to make the best estimates of the dimension, so that is the one we choose. 
+\par
+Plot of results for spherical Gaussian, for which we know the correct answer.  
+
+\subsubsection*{Parameter compression rate}
+Plots of samples dimensionality against compression also draw attention to the \textit{speed} at which different parameters are constrained throughout the run. As a concrete example, consider an elongated Gaussian in a unit hypercube prior with $\mu = 0$ and $\Sigma = \mathrm{diag}\left(1, 1, 0.01, 0.01\right) \times 10^{-2}$.
+\par
+Plot of dimensionality vs compression factor, showing step changes 
+\par
+It is important to appreciate that at lower compressions the samples truly lie in a lower-dimensional space, because the algorithm has not yet begun to constrain the other parameters. Anticipating the full dimensionality of the space is therefore just as impossible as that associated with a slab-spike geometry, so in this sense such geometries contain a phase transition. 
 
 \section{Endpoint prediction}
-Discussion of how to get endpoint and the necessity of extrapolation. Compare to UltraNest/dynesty slab methods and why they underpredict.
-\par
-The key observation is that the Bayesian model dimensionality is the equivalent dimension of the posterior if it were actually Gaussian. Fitting a Gaussian of this dimension to the likelihood profile should be a reasonable approximation to the true distribution. 
-\par
-Show fits
-Find BMD
-Fit data to find sigma
-Extrapolate using a Gaussian likelihood with this parameterisation
+The time complexity of nested sampling \citep{supernest} is
+\begin{equation}
+    T \propto \nlive \times \langle \mathcal{T}\{ \Like(\theta) \} \rangle \times \langle \mathcal{T}\{ \mathrm{Impl.}\} \rangle \times \DKL.
+\end{equation}
+The second term is the time per likelihood evaluation, which is constant. The third is the cost to replace a dead point with a live point at higher likelihood, which is given by the implementation and usually does not vary in orders of magnitude. The primary unknown during a run, and therefore our primary interest, is the final term: the compression required to get from prior to posterior. 
 
+\subsection{The termination prior volume}
+To be exact, one wishes to find the compression factor $\log X_ \mathrm{f}$ at which the termination criterion is met, which is slightly larger in magnitude than $\DKL$ (Fig X). The problem is that at an intermediate iteration we only know the posterior up to the maximum log-likelihood live point, which until just before the end is quite far from the posterior bulk. 
+\par
+In order to get an idea of where the true posterior bulk sits, we need to predict what the posterior looks like past the highest live point. We do this by \textit{extrapolating} the known likelihood profile; that is, the trajectory of $\Like(X)$ traced out by the live and dead points. 
+\par
+One would never use this predicted posterior to do inference, since more accuracy can always be achieved by simply finishing the run. However, it is more than sufficient for making a prediction for $\log X_\mathrm{f}$. Quantitatively, this proceeds as follows: fit a function $f(X, \phi)$  with some parameters $\phi$ to the known likelihood profile, which allows us to express the prior volume we need to compress to as
+\begin{equation}
+	\Delta \mathcal{Z} = \epsilon \mathcal{Z}_\mathrm{tot},
+\end{equation}
+\begin{equation}\label{endpoint}
+	\int_0^{X_\mathrm{f}} f(X, \phi)\ \mathrm{d}X = \epsilon \left( \int_0^{X_i} f(X, \phi)\ \mathrm{d}X + \mathcal{Z}_\mathrm{dead} \right),
+\end{equation}
+where $X_i$ is the volume of the iteration we have currently compressed to, and $\mathcal{Z}_\mathrm{dead}$ is the evidence we have accumulated up to this point. $X_\mathrm{f}$ can then be identified by solving the above equation either analytically or numerically. 
+\par
+Once $X_\mathrm{f}$ is known, the corresponding iteration count depends on the live point schedule. The conversion is easiest in the constant $\nlive$ case; at each iteration $\log X$ decreases by $1/\nlive$, so the total number of iterations $N_\mathrm{f}$ will be
+\begin{equation}
+	N_\mathrm{f} = - \nlive \log X_\mathrm{f} .
+\end{equation}
+
+
+\subsection{Regression procedure}
+A key observation is that the Bayesian model dimensionality is the equivalent dimension of the posterior if it were actually Gaussian. Fitting a Gaussian of this dimension to the likelihood profile therefore makes a reasonable approximation to the true distribution, without explicitly assuming the form of the likelihood function (see plot). The explicit form of the Gaussian that we fit is the same as that given in section X, which we shall repeat here for clarity;
+\begin{equation}\label{gaussian}
+    f(X; \phi) = \logLmax - X^{2/d}/2\sigma^2
+\end{equation}
+The extrapolation then proceeds thus:
+\begin{enumerate}[leftmargin=*]
+    \item Find the current dimensionality $\tilde{d}^{*}$ of the posterior at the Bayesian temperature
+    \item Take the live point profile and do a least squares fit to \eqref{gaussian}, stipulating that $d = \tilde{d}$ to infer $\logLmax$ and $\sigma$ 
+    \item Use the likelihood predicted by these parameters to solve \eqref{endpoint} for $X_\mathrm{f}$
+\end{enumerate}
+The advantage of fitting a Gaussian is that the procedure can be sped up analytically. Firstly, the least squares regression is trivial because analytic estimators exist; the cost function 
+\begin{equation}\label{chi squared}
+	C^2(\logLmax, \sigma) = \sum_i \left| \log \Like_i - f(X_i; \logLmax, \sigma) \right| ^2
+\end{equation}
+is minimised with respect to $(\logLmax, \sigma)$ when
+\begin{equation}\label{eq:sigma}
+    \sigma^2 = \frac{N \sum_i X_i^{4/d} - \left(\sum_i X_i^{2/d}\right)^2}{2 \sum_i \log \Like_i \sum_i X_i^{2/d} - 2N \sum_i X_i^{2/d}\log \Like_i },
+\end{equation}
+and
+\begin{equation}\label{eq:logLmax}
+    \logLmax = \frac{1}{N} \sum_i \log \mathcal{L}_i + \frac{1}{2N\sigma^2} \sum_i X_i^{2/d}.
+\end{equation}
+Secondly, the termination prior volume can also be obtained analytically. Rewriting \cref{endpoint} in terms of the Gaussian parameters gives
+\begin{equation}
+	\epsilon = \frac{\int_0^{X_\mathrm{f}} \Like_\mathrm{max} \exp\left(-X^{2/d}/2\sigma^2\right)\ \mathrm{d}X}{\int_0^{X_i} \Like_\mathrm{max} \exp\left(-X^{2/d}/2\sigma^2\right)\ \mathrm{d}X + \mathcal{Z}_\mathrm{dead}}.
+\end{equation}
+The integrals have the analytic solution
+\begin{equation}
+	\int_0^{X_k} \Like_\mathrm{max} \exp\left(-X^{2/d}/2\sigma^2\right)\ \mathrm{d}X = \frac{d}{2} \cdot \left(\sqrt{2}\sigma\right)^d \cdot \gamma_k
+\end{equation}
+where $\gamma_k = \Gamma_{d/2}\left(X_k^{2/d}/2\sigma^2\right)$ is the lower incomplete gamma function. After taking the inverse of  $\gamma$ and a few more steps of algebra, we arrive at
+\begin{equation}
+    \log X_\mathrm{f} = \frac{d}{2}\log 2\sigma^2	+ \log \Gamma^{-1}_{d/2} \left(\epsilon \gamma_i+ \frac{\epsilon\mathcal{Z}_\mathrm{dead}}{ \left( 2\sigma^2 \right)^{d/2}\Like_\mathrm{max}}\right),
+\end{equation}
+and $N_\mathrm{f}$ is of course just $-\nlive$ multiplied by this. Intuitively, the above procedure can be thought of as inferring the number of constrained parameters, then extrapolating them up to find the point at which they will be fully constrained. 
+\par
+Plot of fits to Gaussian for different distributions
+\par
+One might wonder why we do not obtain $d$ via least squares regression together with the other parameters; extensive testing has shown it to be far less stable.
+
+\subsection{Alternative approaches}
+Ultranest \citep{ultranest} tracks progress based on the remaining integral, approximated as $\Like_\mathrm{max} X_i$. does not correspond directly to runtime, since it will be zero for most of the run before the bulk is crossed.
+\par
+Extrapolating evidence increments is considerably less stable 
+
+\section{Results}
+Now that we have a method for predicting the endpoint, it can be tested on a range of distributions. We begin by considering a series of toy examples to explore the capabilities and limitations of the method, before presenting results for real cosmological chains.
+\subsection{Toy examples}
+\subsubsection{Gaussians}
+Spherical Gaussian, elongated Gaussian
+\subsubsection{Cauchy}
+Cauchy\\
+\subsection{Cosmological examples}
+
+\section{Conclusion}
+
+
+\appendix
+\section{The maximum live log-likelihood}
+Assume a Gaussian likelihood
+\begin{equation}\label{eq:logL}
+	\log\mathcal{L} = \log\mathcal{L}_\mathrm{max} - X^{2/d}/2\sigma^2.
+\end{equation}
+The distribution of the true posterior in $\log\mathcal{L}$ is
+\begin{equation}
+    P(\log\mathcal{L}) = \frac{1}{\Gamma\left(\frac{d}{2}\right)}e^{\log\mathcal{L}-\log\mathcal{L}_\mathrm{max}} (\log\mathcal{L}_\mathrm{max}-\log\mathcal{L})^{\frac{d}{2}-1}
+\end{equation}
+i.e. $2(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}) \sim \chi^2_{d}$, which is the distribution of the weighted samples. The posterior average and variance of $\log \mathcal{L}$ are given by
+\begin{equation}
+    \langle\log\mathcal{L}\rangle_\mathcal{P} = \log\mathcal{L}_\mathrm{max} - \frac{d}{2},  \quad \mathrm{Var}(\log\mathcal{L})_\mathcal{P} = \frac{d}{2}.
+\end{equation}
+Meanwhile, the live points are uniformly distributed over the constrained prior and hence have probability distribution
+\begin{equation}
+	P(\log\mathcal{L}) = \frac{d}{2}\frac{(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L})^{\frac{d}{2}-1}}{(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}_*)^{\frac{d}{2}}} \quad [\log\mathcal{L}_* < \log\mathcal{L} <\log\mathcal{L}_\mathrm{max}],
+    \label{eq:PL}
+\end{equation}
+It is helpful at this stage to define a parameter
+\begin{equation}
+    y = \frac{\log\mathcal{L}-\log\mathcal{L}_*}{\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}_*}
+    \label{eq:y}
+\end{equation}
+as a normalised measure of how far a point is between the latest dead point and the maximum log-likelihood, with $y=0$ corresponding to $\mathcal{L}_*$ and $y=1$ to $\mathcal{L}_\mathrm{max}$, so that
+\begin{equation}
+    P(y) = \frac{d}{2}(1-y)^{\frac{d}{2}-1} \quad [0<y<1].
+    \label{eq:Py}
+\end{equation}
+We now seek the distribution for the maximum likelihood of the live points, $\log\mathcal{L}_\mathrm{max}^{\mathrm{live}}$. Using the result that the maximum of $n$ variables with cumulative distribution $F(y)$ follows $\frac{d}{dy}( 1- (1-F(y))^n)$, we obtain
+\begin{equation}
+    P(y_\mathrm{max}^\mathrm{live}) = \frac{nd}{2}(1-y_\mathrm{max}^\mathrm{live})^{\frac{d}{2}-1}\left(1-(1-y_\mathrm{max}^\mathrm{live})^{\frac{d}{2}}\right)^{n-1} \quad [0<y_\mathrm{max}^\mathrm{live}<1],
+    \label{eq:Pyhat}
+\end{equation}
+which may be roughly summarised as
+\begin{align}
+    y_\mathrm{max}^\mathrm{live} \sim &1-\frac{\Gamma(1+\frac{2}{d})\Gamma(1+n)}{\Gamma(1+\frac{2}{d}+n)} \\
+    & \pm \left( \frac{\Gamma(1+n)\Gamma(1+\frac{4}{d})}{\Gamma(1+\frac{4}{d}+n)} - \frac{\Gamma(1+\frac{2}{d})^2 \Gamma(1+n)^2}{\Gamma(1+\frac{2}{d}+n)^2}\right)^{\frac{1}{2}},
+    \label{eq:ymax}
+\end{align}
+or in the large $d$, $n$ limit
+\begin{align}
+    \lim_{d\to\infty} y_\mathrm{max}^\mathrm{live} &\sim \frac{2H_n}{d} \pm \left(\frac{2(\pi^2 - 6\Psi^{(1)}(1+n))}{3d^2}\right)^{\frac{1}{2}},
+    \label{eq:ymaxd}\\
+    \lim_{d,n\to\infty} y_\mathrm{max}^\mathrm{live} &\sim \frac{2\log n}{d} \pm \sqrt{\frac{2}{3}}\frac{\pi}{d},
+    \label{eq:ymaxdn}
+\end{align}
+where $\psi^{(1)}$ is the trigamma function and $H_n$ is the $n$th harmonic number.
+\par
+This shows that in general the live points are nowhere near the maximum log-likelihood at any iteration, though they do steadily squeeze the interval $[\log\mathcal{L}_*,\log\mathcal{L}_\mathrm{max}]$. In particular, in high dimensions $n$ only gets us harmonically/logarithmically closer, whilst $d$ pushes us linearly further away.
 
 \bibliographystyle{mnras}
 \bibliography{references}
 
 \label{lastpage}
 \end{document}
+
