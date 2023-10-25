@@ -7,7 +7,7 @@ def weights(logL, logX, beta):
     logw = beta*logL + logX
     return np.exp(logw - np.max(logw))
 
-name, samples = get_samples('toy', 'planck_gaussian')
+name, samples = get_samples('planck_gaussian')
 samples = samples.iloc[:int(len(samples)*0.7)]
 logL = samples.logL
 logX = samples.logX()

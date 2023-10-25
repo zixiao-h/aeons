@@ -5,10 +5,40 @@ from scipy.special import gamma, gammainc, logsumexp, gammaincinv, loggamma
 
 proj_dir = '/home/zixiao/Documents/III/project'
 aeons_dir = '/home/zixiao/Documents/III/project/aeons'
+data_dir = f'{aeons_dir}/data'
 lcdm_chains = ['BAO', 'lensing', 'lensing_BAO', 'lensing_SH0ES', 'SH0ES', 'planck', 'planck_BAO', \
               'planck_lensing', 'planck_SH0ES', 'planck_lensing_BAO', 'planck_lensing_SH0ES']
-toy_chains = ["gauss_30_01", "wedding_20_001", "cauchy_10_0001", "planck_gaussian", "gp"]
 test_chains = ['gauss_32', 'cauchy_83', 'BAO', 'planck']
+gauss_chains = ['gauss_4', 'gauss_8', 'gauss_16', 'gauss_32', 'gauss_64']
+cauchy_chains = ['cauchy_82', 'cauchy_83', 'cauchy_84', 'cauchy_85']
+all_chains = gauss_chains + cauchy_chains + lcdm_chains
+endpoints = {'BAO': 18129,
+ 'lensing': 19034,
+ 'lensing_BAO': 22108,
+ 'lensing_SH0ES': 20672,
+ 'SH0ES': 15096,
+ 'planck': 57372,
+ 'planck_BAO': 58216,
+ 'planck_lensing': 58100,
+ 'planck_SH0ES': 57424,
+ 'planck_lensing_BAO': 57852,
+ 'planck_lensing_SH0ES': 58032,
+ 'gauss_4': 11672,
+ 'gauss_8': 18665,
+ 'gauss_16': 31329,
+ 'gauss_32': 53346,
+ 'gauss_64': 90737,
+ 'cauchy_82': 20961,
+ 'cauchy_83': 29889,
+ 'cauchy_84': 39236,
+ 'cauchy_85': 48405,
+ 'slab_spike': 6593,
+ 'correlated_3d': 26107,
+ 'correlated_6d': 30234,
+ 'gp': 91721,
+ 'gauss_32_2000': 213249,
+ 'gauss_16_2000': 125308,
+ 'gauss_16_1000': 62973}
 
 def pickle_dump(filename, data):
     """Function that pickles data into a file"""
@@ -97,10 +127,10 @@ def reject_outliers(data, degree=2):
     return data[dev < degree * median_dev]
 
 def points_at_iteration(samples, ndead):
-    nlive = samples.iloc[ndead].nlive
-    logL_k = samples.iloc[ndead].logL
+    nlive = samples.loc[ndead].nlive
+    logL_k = samples.loc[ndead].logL
     points = samples.loc[samples.logL_birth < logL_k]
-    nk = np.concatenate([points.nlive[:ndead], np.arange(nlive+1, 1, -1)])
+    nk = np.concatenate([points.nlive[:ndead], np.arange(nlive, 0, -1)])
     points = points.assign(nlive=nk)
     points = points.reset_index(drop=True)
     return points
@@ -134,11 +164,12 @@ def logZ_formula(logPmax, H, D, details=False):
 
 def logXf_formula(theta, logZdead, Xi, epsilon=1e-3):
     logLmax, d, sigma = theta
-    if (logZdead - (logLmax + np.log(d/2) + d/2 * np.log(2*sigma**2)) < np.log(epsilon)):
-        return d/2 * np.log(2) + d*np.log(sigma) + loggamma(1 + d/2) + np.log(epsilon)
     loglive = loggamma(d/2) + np.log(gammainc(d/2, Xi**(2/d)/(2*sigma**2)) )
     logdead = logZdead - logLmax - (d/2)*np.log(2) - d*np.log(sigma) + np.log(2/d)
     logend = logsumexp([loglive, logdead]) + np.log(epsilon)
+    # if (gammainc(d/2, Xi**(2/d)/(2*sigma**2)) > 1 - epsilon):
+    if logend > loggamma(d/2):
+        return d/2 * np.log(2) + d*np.log(sigma) + loggamma(1 + d/2) + np.log(epsilon)
     xf_reg = gammaincinv(d/2, np.exp(logend - loggamma(d/2)))
     return d/2 * np.log(2*sigma**2 * xf_reg)
 
@@ -165,7 +196,7 @@ def calc_endpoints(iterations, logXs, logXfs, logXfs_std, nlive, nconst=None, lo
     endpoints_std = logXfs_std * -nlive
     return endpoints, endpoints_std
 
-def make_iterations(true_endpoint, N, start=0.05, end=1):
+def make_iterations(true_endpoint, N, start=0.01, end=1):
     return np.linspace(start*true_endpoint, end*true_endpoint, N, endpoint=False).astype(int)
 
 def get_logXs(samples, iterations):
@@ -178,7 +209,7 @@ def figsettings():
         # Use LaTeX to write all text
         "pgf.texsystem": "pdflatex",
         "text.usetex": True,
-        "font.family": "serif",
+        'font.family': 'serif',
         # Use 11pt font in plots, to match 11pt font in document
         "axes.labelsize": 7,
         "font.size": 7,
@@ -228,3 +259,19 @@ def get_beta(points, ndead):
     from scipy import optimize
     res = optimize.root_scalar(func, bracket=[0, 1])
     return res.root
+
+def get_dGs(get_beta, samples, iterations, Nset=10, **kwargs):
+    """Get the dG of the samples at each iteration for a given function get_beta."""
+    iterations = iterations.astype(int)
+    d_Gs = np.zeros(len(iterations))
+    d_Gs_std = np.zeros(len(iterations))
+    for i, iteration in enumerate(iterations):
+        points = points_at_iteration(samples, iteration)
+        beta = get_beta(points, iteration, **kwargs)
+        points = points.set_beta(beta)
+        d_Gs_i = points.d_G(Nset)
+        d_Gs[i] = d_Gs_i.mean()
+        d_Gs_std[i] = d_Gs_i.std()
+        # Print progress bar
+        print('\r', f'Iteration {iteration} of {iterations[-1]}, {d_Gs[i]}', end='')
+    return d_Gs, d_Gs_std

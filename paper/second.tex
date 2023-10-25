@@ -151,7 +151,7 @@ Intuitively, this is because for a sharply peaked likelihood the live points are
 \begin{center}
 	\includegraphics{figures/live_point_distribution.pdf}
 \end{center}
-\caption{The distribution of the posterior mass in terms of $\log X$, the live points over the prior $\pi(\log X \mid \log X < \log X_*)$ and the smallest live point prior volume $\log X_\mathrm{min}^{\mathrm{live}}$ at an intermediate iteration $i_*$. For large values of $\DKL$ i.e. informative posteriors and/or large dimensionalities, the maximum live point is very far from the posterior bulk until the very end of the run. Note that the x-axis in this plot is $\log X$, so that the run proceeds from right to left to emphasise that the enclosed prior volume iteratively gets smaller. Plots of the sort from here onwards will be in terms of $-\log X$, where the run will more naturally proceed from rleft to right. }
+\caption{The distribution of the posterior mass in terms of $\log X$, the live points over the prior $\pi(\log X \mid \log X < \log X_*)$ and the smallest live point prior volume $\log X_\mathrm{min}^{\mathrm{live}}$ at an intermediate iteration $i_*$. For large values of $\DKL$ i.e. informative posteriors and/or large dimensionalities, the maximum live point is very far from the posterior bulk until the very end of the run. Note that the x-axis in this plot is $\log X$, so that the run proceeds from right to left to emphasise that the enclosed prior volume iteratively gets smaller. Plots of the sort from here onwards will be in terms of $-\log X$, where the run will more naturally proceed from rleft to right.}
 \label{fig:live_point_distribution}
 \end{figure*}
 
@@ -209,8 +209,6 @@ As noted by Skilling, the posterior with respect to $\log X$ $\Like^{\beta} X$ h
 \begin{equation}
     \beta^* = - \frac{\mathrm{d} \log X}{\mathrm{d} \log \Like}
 \end{equation}
-
-
 
 \subsubsection*{Choice of temperature mapping}
 The typical behaviour at an intermediate stage of a nested sampling run is that the posterior mass is dominated by a single point. This is because the highest live point is typically several log-likelihoods, and therefore orders of magnitude higher in weight than the next point. Decreasing $\beta$, equivalent to increasing the temperature, causes the mass to redistribute more equally across the samples. A natural choice for the present temperature $\beta^{*}$ is therefore one where the posterior mass is concentrated around the current dead point. What that constitutes is subjective, and several plausible choices are presented below:
@@ -437,7 +435,7 @@ The method in general converges to the correct endpoint by about the halfway poi
 Further work can be done to incorporate more flexible fitting functions to extrapolate non-Gaussian likelihoods, as well as developing a more rigorous framework to choose between the inferred $d$ and $\tilde{d}$.
 
 \bibliographystyle{mnras}
-\bibliography{references}
+% \bibliography{references}
 
 \appendix
 \section{Derivation of the termination log-likelihood }

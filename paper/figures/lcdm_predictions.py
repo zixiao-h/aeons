@@ -1,10 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
 from aeons.utils import *
 from aeons.plotting import *
-
 figsettings()
+
 fig, axs = plt.subplots(3, 4, figsize=(7, 4))
 axs = axs.flatten()
 fig.delaxes(axs[-1])

@@ -6,20 +6,21 @@ from matplotlib.lines import Line2D
 import numpy as np
 from matplotlib import patheffects, rcParams
 rcParams['path.effects'] = [patheffects.withStroke(linewidth=1, foreground='white')]
+from aeons.utils import *
 
 nlive = 100
-samples = planck_gaussian(nlive)
+samples = get_samples('planck_gaussian_100', reduced=False)[1]
 
 x = 'omegabh2'
 y = 'omegach2'
 
-fig, axes = plt.subplots(1,4, figsize=(7*4*0.5,7*0.5*1.5))
+fig, axes = plt.subplots(1,4, figsize=(7,2))
 
 for ax in axes:
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_box_aspect(1)
-    ax.plot(samples[x], samples[y], 'C0.', ms=0.5)
+    ax.scatter(samples[x], samples[y], s=0.1)
 
 axes[0].get_children()[-1].get_zorder()
 axes[0].set_zorder(10)
@@ -84,18 +85,18 @@ ax = fig.add_subplot(1,4,4)
 ax.set_box_aspect(1)
 ax.set_xticks([])
 ax.set_yticks([])
-ax.plot(samples[x], samples[y], 'C0.', ms=0.5)
+ax.scatter(samples[x], samples[y], s=0.2)
 axes = np.concatenate([axes, [ax]])
 
 fig.canvas.draw()
 fig.canvas.flush_events()
-plot_live_points = False
+plot_live_points = True
 
 for k, (i, ax0, ax1) in enumerate(zip(range(nlive*20, nlive*100, nlive*20), axes[:-1], axes[1:])):
     if plot_live_points:
         live = samples.live_points(i)
-        ax0.plot(live[x], live[y], f'C{k+1}o')
-        ax1.plot(live[x], live[y], f'C{k+1}o')
+        ax0.scatter(live[x], live[y], s=2, color=f'C{k+1}')
+        ax1.scatter(live[x], live[y], s=2, color=f'C{k+1}')
     draw_zoom_lines(ax0, ax1, *get_box(i))
 
 fig.canvas.draw()
