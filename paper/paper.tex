@@ -25,7 +25,7 @@
 \newcommand{\logLmax}{\log \Like_\mathrm{max}}
 
 \title[\texttt{aeons}]{\texttt{aeons}: approximating the end of nested sampling}
-\author[Z. Hu et al.]{Zixiao Hu\thanks{E-mail: zixiao.hu.09@gmail.com},$^{1,2}$  Artem Baryshnikov,$^{1,2}$  Will Handley\thanks{E-mail: wh260@cam.ac.uk},$^{1,2}$
+\author[Z. Hu et al.]{Zixiao Hu\thanks{E-mail: zixiao.hu.09@gmail.com},$^{1,2}$  Artem Baryshnikov,$^{1,2}$  Will Handley\thanks{E-mail: wh260@cam.ac.uk}$^{1,2}$
 \\
 % List of institutions
 $^{1}$Astrophysics Group, Cavendish Laboratory, J. J. Thomson Avenue, Cambridge, CB3 0HE, UK\\
@@ -39,7 +39,7 @@ $^{2}$Kavli Institute for Cosmology, Madingley Road, Cambridge, CB3 0HA, UK
 
 
 \begin{abstract}
-This paper presents analytic results on the anatomy of nested sampling, from which a technique is developed to estimate the run-time of the algorithm that works for any nested sampling implementation. At each iteration, the dimensionality of the current set of samples is inferred, then used to extrapolate the known likelihood profile using a Gaussian model function, which allows the remaining evidence and prior volume at termination to be estimated. The method finds the right order of magnitude at all times, obtaining the true endpoint within standard error generally around the halfway point, and converges to the true value by the end of the run.  
+    This paper presents analytic results on the anatomy of nested sampling, from which a technique is developed to estimate the run-time of the algorithm that works for any nested sampling implementation. At each iteration, the dimensionality of the current set of samples is inferred, then used to extrapolate the known likelihood profile using a Gaussian model function, which allows the remaining evidence and prior volume at termination to be estimated. We test these methods on both toy models and true cosmological nested sampling runs. The method finds the right order of magnitude at all times, obtaining the true endpoint within standard error generally around the halfway point, and converges to the true value by the end of the run.  
 \end{abstract}
 
 \begin{keywords}
@@ -47,9 +47,9 @@ methods: data analysis -- methods: statistical
 \end{keywords}
 
 \section{Introduction}
-Nested sampling is a multi-purpose algorithm invented by John Skilling which simultaneously functions as a probabilistic sampler, integrator and optimiser \citep{skilling}. It was immediately adopted for cosmology, and is now used in a wide range of physical sciences including particle physics \citep{Trotta_2008}, materials science \citep{materials} and machine learning \citep{sparse_reconstruction}. The core algorithm is unique in its estimation of volumes by \textit{counting}, which makes high-dimensional integration feasible. It also avoids problems faced by traditional Bayesian algorithms, such as multi-modality.
+Nested sampling is a multi-purpose algorithm invented by John Skilling which simultaneously functions as a probabilistic sampler, integrator and optimiser \citep{skilling}. It was immediately adopted for cosmology, and is now used in a wide range of physical sciences including particle physics \citep{Trotta_2008}, materials science \citep{materials} and machine learning \citep{sparse_reconstruction}. The core algorithm is unique in its estimation of volumes by \textit{counting}, coupling together nested monte carlo integrals which makes high-dimensional integration feasible and robust. It also avoids problems that challenge traditional Bayesian samplers, such as posterior multi-modality and phase transitions.
 \par
-The order of magnitude run-time of an algorithm, that is, whether termination is hours or weeks and months away, is of high importance to the end user. Currently, existing implementations of nested sampling (e.g. \citealt{multinest, polychord, dynesty, ultranest}) either do not give an indication of run-time, or only provide crude measures of progress that do not directly correspond to the run-time. 
+The order of magnitude run-time of an algorithm, that is, whether termination is hours or weeks and months away, is of high importance to the end user. Currently, existing implementations of nested sampling (e.g. \citealt{multinest, polychord, dnest, dynesty, ultranest, nessai,proxnest}) either do not give an indication of remaining run-time, or only provide crude measures of progress that do not directly correspond to the the true endpoint.
 \par
 This paper sets out a principled manner of endpoint estimation for nested sampling at each intermediate stage (as shown in \cref{fig:polychord_output}), the key idea being to use the existing samples to predict the likelihood in the region we have yet to sample from. We begin with an overview of nested sampling in \cref{sec:background}, followed by an examination of the anatomy of a nested sampling run to establish key concepts for endpoint prediction in \cref{sec:anatomy}. \cref{sec:endpoint} then outlines the methodology we use, including discussion and comparisons to previous attempts. Finally, \cref{sec:results} presents the results and discussions for toy and cosmological chains, before we conclude.
 \begin{figure}
@@ -75,7 +75,7 @@ This paper sets out a principled manner of endpoint estimation for nested sampli
 \end{figure}
 
 \section{Background}\label{sec:background}
-Let us begin with a brief description of the nested sampling algorithm to establish the necessary notation. For a more comprehensive treatment, we recommend Skilling's paper and textbook \citet{sivia}, as well as the excellent reviews \citet{Buchner_2023} and \citet{physical_scientists}. 
+We begin with a brief description of the nested sampling algorithm to establish the necessary notation. For a more comprehensive treatment, we recommend the original \citep{skilling} paper, the \citet{sivia} textbook, as well as the excellent technical review by \citet{Buchner_2023} and Nature review by \citet{physical_scientists}. 
 \par
 For a given likelihood $\mathcal{L}(\theta)$ and prior $\pi(\theta)$, nested sampling simultaneously calculates the Bayesian evidence
 \begin{equation}\label{eq:evidence}

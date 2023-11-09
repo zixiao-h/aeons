@@ -38,6 +38,12 @@ Baldock R. J.~N.,  Bernstein N.,  Salerno K.~M.,  P{\'{a}}rtay L.~B.,
   Cs{\'{a}}nyi G.,  2017, \mn@doi [Physical Review E]
   {10.1103/physreve.96.043311}, 96
 
+\bibitem[\protect\citeauthoryear{{Brewer} \& {Foreman-Mackey}}{{Brewer} \&
+  {Foreman-Mackey}}{2016}]{dnest}
+{Brewer} B.~J.,  {Foreman-Mackey} D.,  2016, \mn@doi [arXiv e-prints]
+  {10.48550/arXiv.1606.03757}, \href
+  {https://ui.adsabs.harvard.edu/abs/2016arXiv160603757B} {p. arXiv:1606.03757}
+
 \bibitem[\protect\citeauthoryear{Buchner}{Buchner}{2021}]{ultranest}
 Buchner J.,  2021, UltraNest -- a robust, general purpose Bayesian inference
   engine (\mn@eprint {arXiv} {2101.09604})
@@ -114,6 +120,12 @@ Keeton C.~R.,  2011, \mn@doi [Monthly Notices of the Royal Astronomical
 Kirkpatrick S.,  Gelatt C.~D.,   Vecchi M.~P.,  1983, \mn@doi [Science]
   {10.1126/science.220.4598.671}, 220, 671
 
+\bibitem[\protect\citeauthoryear{{McEwen}, {Liaudat}, {Price}, {Cai}  \&
+  {Pereyra}}{{McEwen} et~al.}{2023}]{proxnest}
+{McEwen} J.~D.,  {Liaudat} T.~I.,  {Price} M.~A.,  {Cai} X.,   {Pereyra} M.,
+  2023, \mn@doi [arXiv e-prints] {10.48550/arXiv.2307.00056}, \href
+  {https://ui.adsabs.harvard.edu/abs/2023arXiv230700056M} {p. arXiv:2307.00056}
+
 \bibitem[\protect\citeauthoryear{Petrosyan \& Handley}{Petrosyan \&
   Handley}{2022}]{supernest}
 Petrosyan A.,  Handley W.,  2022, \mn@doi [Physical Sciences Forum]
@@ -157,6 +169,12 @@ Trotta R.,  Feroz F.,  Hobson M.,  Roszkowski L.,   de Austri R.~R.,  2008,
   Landau}{2001}]{wang_landau}
 Wang F.,  Landau D.~P.,  2001, \mn@doi [Phys. Rev. Lett.]
   {10.1103/PhysRevLett.86.2050}, 86, 2050
+
+\bibitem[\protect\citeauthoryear{{Williams}, {Veitch}  \&
+  {Messenger}}{{Williams} et~al.}{2021}]{nessai}
+{Williams} M.~J.,  {Veitch} J.,   {Messenger} C.,  2021, \mn@doi [Physical
+  Review D] {10.1103/PhysRevD.103.103006}, \href
+  {https://ui.adsabs.harvard.edu/abs/2021PhRvD.103j3006W} {103, 103006}
 
 \makeatother
 \end{thebibliography}
