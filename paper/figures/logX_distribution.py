@@ -49,7 +49,7 @@ ax.add_patch(arrow)
 
 # Arrows showing \Delta\log X
 pad_text = 0.05
-ax.annotate(r'$\Delta\log X = -\frac{1}{n_\mathrm{live}}$', (-ndead/nlive - 1, lpoints+pad_text), ha='center', va='bottom', fontsize=8)
+ax.annotate(r'$\Delta\log X = -\frac{1}{n_{i}}$', (-ndead/nlive - 1, lpoints+pad_text), ha='center', va='bottom', fontsize=8)
 arrow_start = (-ndead/nlive, lpoints)
 arrow_end = (-ndead/nlive - 1.5, lpoints)
 arrow = patches.FancyArrowPatch(arrow_start, arrow_end, arrowstyle='->', mutation_scale=5)
@@ -63,7 +63,7 @@ arrow = patches.FancyArrowPatch(arrow_start, arrow_end, arrowstyle='->', mutatio
 ax.add_patch(arrow)
 ax.annotate("Iterations", (-25, l1+pad_text), ha='center', va='bottom', fontsize=8)
 
-ax.set_xticks([logXf, -DKL, ElogXlivemin, -ndead/nlive, 0], [r"$\log X_\mathrm{f}$", r'$-\mathcal{D}_\mathrm{KL}$', r'$\langle\log X_\mathrm{min}^\mathrm{live}\rangle$', r'$\langle\log X^*\rangle$', '$0$'], fontsize=8)
+ax.set_xticks([logXf, -DKL, ElogXlivemin, -ndead/nlive, 0], [r"$\log X_\mathrm{f}$", r'$-\mathcal{D}_\mathrm{KL}$', r'$\langle\log X_\mathrm{min}^\mathrm{live}\rangle$', r'$\langle\log X_i\rangle$', '$0$'], fontsize=8)
 ax.set_yticks([])
 ax.set_ylim(0, 1.05)
 ax.margins(x=0)

@@ -68,7 +68,7 @@ ax.set_xticks([avlogL,
                logLmaxlive,
                logLmax])
 ax.set_xticklabels([r'$\langle\log\mathcal{L}\rangle_\mathcal{P}$',
-                    r'$\log\mathcal{L}_\mathrm{end}$',
+                    r'$\log\mathcal{L}_i$',
                     r'$\log\mathcal{L}_\mathrm{max}^\mathrm{live}$',
                     r'$\log\mathcal{L}_\mathrm{max}$'],
                     fontsize=8)

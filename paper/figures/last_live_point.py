@@ -9,7 +9,7 @@ ndead = 8000
 points = points_at_iteration(samples, ndead)
 beta_grad = np.exp(get_logbeta_grad(points, ndead))
 betas = [0, beta_grad, 1]
-labels = ['$\\beta=1$', '$\\beta = \\beta^*$', '$\\beta = 0$']
+labels = ['$\\beta=1$', '$\\beta = \\beta_i$', '$\\beta = 0$']
 colors = ['darkgray', 'orange', 'black']
 
 fig, axs = plt.subplots(1, 2, figsize=(3.5, 1.3))
@@ -33,7 +33,7 @@ for ax in axs:
     ax.margins(x=0.02)
     ax.set_ylim(-0.01, 1.1)
     ax.set_yticks([])
-    ax.set_xticks([0, -points.logX().iloc[ndead]], [0, r'$-\log X^*$'])
+    ax.set_xticks([0, -points.logX().iloc[ndead]], [0, r'$-\log X_i$'])
 axs[0].set_title(r'$\mathcal{L}^\beta$', fontsize=8)
 axs[1].set_title('$\\mathcal{P}(\\log X) = \\mathcal{L}^\\beta X$', fontsize=8)
 axs[0].legend(loc='upper left', fontsize=5)

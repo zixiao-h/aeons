@@ -32,7 +32,7 @@ ax.plot(-logXs, endpoints_linear/500, lw=.8, color='orange', label='Linear')
 plot_quantiles(-logXs, -logXfs, -true_logXf, ax=ax, label='Fit $\\mathcal{L}(X)$')
 
 ax.set_ylim(0, 160)
-ax.set_ylabel(r'$-\log \hat{X}_f$')
+ax.set_ylabel(r'$-\log \hat{X}_\mathrm{f}$')
 ax.set_xlabel(r'$-\log X$')
 ax.legend(loc='upper right', fontsize=6)
 ax.margins(x=0)
