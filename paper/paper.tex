@@ -48,23 +48,23 @@ The order of magnitude run-time of an algorithm, that is, whether termination is
 \par
 This paper sets out a principled manner of endpoint estimation for nested sampling at each intermediate stage (as shown in \cref{fig:polychord_output}), the key idea being to use the existing samples to predict the likelihood in the region we have yet to sample from. We begin with an overview of nested sampling in \cref{sec:background}, followed by an examination of the anatomy of a nested sampling run to establish key concepts for endpoint prediction in \cref{sec:anatomy}. \cref{sec:endpoint} then outlines the methodology we use, including discussion and comparisons to previous attempts. Finally, \cref{sec:results} presents the results and discussions for toy and cosmological chains, before we conclude.
 \begin{figure}
-\begin{Verbatim}[frame=single, commandchars=\\\{\}]
-\textcolor{red}{Predicted endpoint: 25054 +/- 242}
-\textcolor{red}{Progress: [=================>########] 72%}
-___________________
-lives      |   500 |
-phantoms   | 24310 |
-posteriors | 18018 |
-equals     |   245 |
--------------------
-ncluster   =  1/1
-ndead      =  18018
-nposterior =  18018
-nequals    =  249
-nlike      =  4159049
-<nlike>    =  491.04 (9.82 per slice)
-log(Z)     =  -12.55 +/- 0.27
-\end{Verbatim}
+%\begin{Verbatim}[frame=single, commandchars=\\\{\}]
+%\textcolor{red}{Predicted endpoint: 25054 +/- 242}
+%\textcolor{red}{Progress: [=================>########] 72%}
+%___________________
+%lives      |   500 |
+%phantoms   | 24310 |
+%posteriors | 18018 |
+%equals     |   245 |
+%-------------------
+%ncluster   =  1/1
+%ndead      =  18018
+%nposterior =  18018
+%nequals    =  249
+%nlike      =  4159049
+%<nlike>    =  491.04 (9.82 per slice)
+%log(Z)     =  -12.55 +/- 0.27
+%\end{Verbatim}
 \caption{Output from \textsc{PolyChord} for a typical nested sampling run. The predicted endpoint, shown in red, is calculated using the method described in this paper.}
 \label{fig:polychord_output}
 \end{figure}
