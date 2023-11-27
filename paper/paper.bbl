@@ -78,6 +78,10 @@ Gelman A.,  Meng X.-L.,  1998, \mn@doi [Statistical Science]
 Habeck M.,  2015, \mn@doi [AIP Conference Proceedings] {10.1063/1.4905971},
   1641, 121
 
+\bibitem[\protect\citeauthoryear{Handley}{Handley}{2019}]{anesthetic}
+Handley W.,  2019, \mn@doi [Journal of Open Source Software]
+  {10.21105/joss.01414}, 4, 1414
+
 \bibitem[\protect\citeauthoryear{Handley}{Handley}{2021}]{curvature_tension}
 Handley W.,  2021, \mn@doi [Physical Review D] {10.1103/physrevd.103.l041301},
   103
@@ -102,9 +106,15 @@ Handley W.~J.,  Hobson M.~P.,   Lasenby A.~N.,  2015, \mn@doi [Monthly Notices
   of the Royal Astronomical Society] {10.1093/mnras/stv1911}, 453, 4385
 
 \bibitem[\protect\citeauthoryear{Higson, Handley, Hobson  \& Lasenby}{Higson
-  et~al.}{2018}]{sparse_reconstruction}
-Higson E.,  Handley W.,  Hobson M.,   Lasenby A.,  2018, \mn@doi [Monthly
+  et~al.}{2018a}]{sparse_reconstruction}
+Higson E.,  Handley W.,  Hobson M.,   Lasenby A.,  2018a, \mn@doi [Monthly
   Notices of the Royal Astronomical Society] {10.1093/mnras/sty3307}
+
+\bibitem[\protect\citeauthoryear{{Higson}, {Handley}, {Hobson}  \&
+  {Lasenby}}{{Higson} et~al.}{2018b}]{2018BayAn..13..873H}
+{Higson} E.,  {Handley} W.,  {Hobson} M.,   {Lasenby} A.,  2018b, \mn@doi
+  [Bayesian Analysis] {10.1214/17-BA1075}, \href
+  {https://ui.adsabs.harvard.edu/abs/2018BayAn..13..873H} {13, 873}
 
 \bibitem[\protect\citeauthoryear{Higson, Handley, Hobson  \& Lasenby}{Higson
   et~al.}{2019}]{dynamic_ns}
