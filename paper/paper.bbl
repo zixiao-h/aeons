@@ -1,0 +1,190 @@
+\begin{thebibliography}{}
+\makeatletter
+\relax
+\def\mn@urlcharsother{\let\do\@makeother \do\$\do\&\do\#\do\^\do\_\do\%\do\~}
+\def\mn@doi{\begingroup\mn@urlcharsother \@ifnextchar [ {\mn@doi@}
+  {\mn@doi@[]}}
+\def\mn@doi@[#1]#2{\def\@tempa{#1}\ifx\@tempa\@empty \href
+  {http://dx.doi.org/#2} {doi:#2}\else \href {http://dx.doi.org/#2} {#1}\fi
+  \endgroup}
+\def\mn@eprint#1#2{\mn@eprint@#1:#2::\@nil}
+\def\mn@eprint@arXiv#1{\href {http://arxiv.org/abs/#1} {{\tt arXiv:#1}}}
+\def\mn@eprint@dblp#1{\href {http://dblp.uni-trier.de/rec/bibtex/#1.xml}
+  {dblp:#1}}
+\def\mn@eprint@#1:#2:#3:#4\@nil{\def\@tempa {#1}\def\@tempb {#2}\def\@tempc
+  {#3}\ifx \@tempc \@empty \let \@tempc \@tempb \let \@tempb \@tempa \fi \ifx
+  \@tempb \@empty \def\@tempb {arXiv}\fi \@ifundefined
+  {mn@eprint@\@tempb}{\@tempb:\@tempc}{\expandafter \expandafter \csname
+  mn@eprint@\@tempb\endcsname \expandafter{\@tempc}}}
+
+\bibitem[\protect\citeauthoryear{Akrami, Scott, Edsjö, Conrad  \&
+  Bergström}{Akrami et~al.}{2010}]{Akrami_2010}
+Akrami Y.,  Scott P.,  Edsjö J.,  Conrad J.,   Bergström L.,  2010, \mn@doi
+  [Journal of High Energy Physics] {10.1007/jhep04(2010)057}, 2010
+
+\bibitem[\protect\citeauthoryear{Ashton et~al.,}{Ashton
+  et~al.}{2022}]{physical_scientists}
+Ashton G.,  et~al., 2022, \mn@doi [Nature Reviews Methods Primers]
+  {10.1038/s43586-022-00121-x}, 2
+
+\bibitem[\protect\citeauthoryear{Baldock, P\'artay, Bart\'ok, Payne  \&
+  Cs\'anyi}{Baldock et~al.}{2016}]{baldock}
+Baldock R. J.~N.,  P\'artay L.~B.,  Bart\'ok A.~P.,  Payne M.~C.,   Cs\'anyi
+  G.,  2016, \mn@doi [Phys. Rev. B] {10.1103/PhysRevB.93.174108}, 93, 174108
+
+\bibitem[\protect\citeauthoryear{Baldock, Bernstein, Salerno, P{\'{a}}rtay  \&
+  Cs{\'{a}}nyi}{Baldock et~al.}{2017}]{Baldock_2017}
+Baldock R. J.~N.,  Bernstein N.,  Salerno K.~M.,  P{\'{a}}rtay L.~B.,
+  Cs{\'{a}}nyi G.,  2017, \mn@doi [Physical Review E]
+  {10.1103/physreve.96.043311}, 96
+
+\bibitem[\protect\citeauthoryear{{Brewer} \& {Foreman-Mackey}}{{Brewer} \&
+  {Foreman-Mackey}}{2016}]{dnest}
+{Brewer} B.~J.,  {Foreman-Mackey} D.,  2016, \mn@doi [arXiv e-prints]
+  {10.48550/arXiv.1606.03757}, \href
+  {https://ui.adsabs.harvard.edu/abs/2016arXiv160603757B} {p. arXiv:1606.03757}
+
+\bibitem[\protect\citeauthoryear{Buchner}{Buchner}{2021}]{ultranest}
+Buchner J.,  2021, UltraNest -- a robust, general purpose Bayesian inference
+  engine (\mn@eprint {arXiv} {2101.09604})
+
+\bibitem[\protect\citeauthoryear{Buchner}{Buchner}{2023}]{Buchner_2023}
+Buchner J.,  2023, \mn@doi [Statistics Surveys] {10.1214/23-ss144}, 17
+
+\bibitem[\protect\citeauthoryear{Chopin \& Robert}{Chopin \&
+  Robert}{2010}]{Chopin_2010}
+Chopin N.,  Robert C.~P.,  2010, \mn@doi [Biometrika] {10.1093/biomet/asq021},
+  97, 741
+
+\bibitem[\protect\citeauthoryear{Evans}{Evans}{2006}]{evans}
+Evans M.,  2006, World Meeting on Bayesian Statistics Benidorm, 8
+
+\bibitem[\protect\citeauthoryear{Feroz, Hobson  \& Bridges}{Feroz
+  et~al.}{2009}]{multinest}
+Feroz F.,  Hobson M.~P.,   Bridges M.,  2009, \mn@doi [Monthly Notices of the
+  Royal Astronomical Society] {10.1111/j.1365-2966.2009.14548.x}, 398, 1601
+
+\bibitem[\protect\citeauthoryear{Feroz, Cranmer, Hobson, de Austri  \&
+  Trotta}{Feroz et~al.}{2011}]{Feroz_2011}
+Feroz F.,  Cranmer K.,  Hobson M.,  de Austri R.~R.,   Trotta R.,  2011,
+  \mn@doi [Journal of High Energy Physics] {10.1007/jhep06(2011)042}, 2011
+
+\bibitem[\protect\citeauthoryear{Gelman \& Meng}{Gelman \&
+  Meng}{1998}]{path_sampling}
+Gelman A.,  Meng X.-L.,  1998, \mn@doi [Statistical Science]
+  {10.1214/ss/1028905934}, 13, 163
+
+\bibitem[\protect\citeauthoryear{Habeck}{Habeck}{2015}]{demons}
+Habeck M.,  2015, \mn@doi [AIP Conference Proceedings] {10.1063/1.4905971},
+  1641, 121
+
+\bibitem[\protect\citeauthoryear{Handley}{Handley}{2019}]{anesthetic}
+Handley W.,  2019, \mn@doi [Journal of Open Source Software]
+  {10.21105/joss.01414}, 4, 1414
+
+\bibitem[\protect\citeauthoryear{Handley}{Handley}{2021}]{curvature_tension}
+Handley W.,  2021, \mn@doi [Physical Review D] {10.1103/physrevd.103.l041301},
+  103
+
+\bibitem[\protect\citeauthoryear{Handley}{Handley}{2023a}]{kcl_talk}
+Handley W.,  2023a, Nested sampling: powering next-generation inference and
+  machine learning tools for cosmology, particle physics and beyond, King's
+  College London, \url
+  {https://github.com/williamjameshandley/talks/raw/kcl_2023/will_handley_kcl_2023.pdf}
+
+\bibitem[\protect\citeauthoryear{Handley}{Handley}{2023b}]{scaling_frontier}
+Handley W.,  2023b, The scaling frontier of nested sampling
+
+\bibitem[\protect\citeauthoryear{Handley \& Lemos}{Handley \&
+  Lemos}{2019}]{Handley_2019}
+Handley W.,  Lemos P.,  2019, \mn@doi [Physical Review D]
+  {10.1103/physrevd.100.023512}, 100
+
+\bibitem[\protect\citeauthoryear{Handley, Hobson  \& Lasenby}{Handley
+  et~al.}{2015}]{polychord}
+Handley W.~J.,  Hobson M.~P.,   Lasenby A.~N.,  2015, \mn@doi [Monthly Notices
+  of the Royal Astronomical Society] {10.1093/mnras/stv1911}, 453, 4385
+
+\bibitem[\protect\citeauthoryear{Higson, Handley, Hobson  \& Lasenby}{Higson
+  et~al.}{2018a}]{sparse_reconstruction}
+Higson E.,  Handley W.,  Hobson M.,   Lasenby A.,  2018a, \mn@doi [Monthly
+  Notices of the Royal Astronomical Society] {10.1093/mnras/sty3307}
+
+\bibitem[\protect\citeauthoryear{{Higson}, {Handley}, {Hobson}  \&
+  {Lasenby}}{{Higson} et~al.}{2018b}]{2018BayAn..13..873H}
+{Higson} E.,  {Handley} W.,  {Hobson} M.,   {Lasenby} A.,  2018b, \mn@doi
+  [Bayesian Analysis] {10.1214/17-BA1075}, \href
+  {https://ui.adsabs.harvard.edu/abs/2018BayAn..13..873H} {13, 873}
+
+\bibitem[\protect\citeauthoryear{Higson, Handley, Hobson  \& Lasenby}{Higson
+  et~al.}{2019}]{dynamic_ns}
+Higson E.,  Handley W.,  Hobson M.,   Lasenby A.,  2019, \mn@doi [Statistics
+  and Computing] {10.1007/s11222-018-9844-0}, 29, 891–913
+
+\bibitem[\protect\citeauthoryear{Keeton}{Keeton}{2011}]{Keeton_2011}
+Keeton C.~R.,  2011, \mn@doi [Monthly Notices of the Royal Astronomical
+  Society] {10.1111/j.1365-2966.2011.18474.x}, 414, 1418
+
+\bibitem[\protect\citeauthoryear{Kirkpatrick, Gelatt  \& Vecchi}{Kirkpatrick
+  et~al.}{1983}]{simulated_annealing}
+Kirkpatrick S.,  Gelatt C.~D.,   Vecchi M.~P.,  1983, \mn@doi [Science]
+  {10.1126/science.220.4598.671}, 220, 671
+
+\bibitem[\protect\citeauthoryear{{McEwen}, {Liaudat}, {Price}, {Cai}  \&
+  {Pereyra}}{{McEwen} et~al.}{2023}]{proxnest}
+{McEwen} J.~D.,  {Liaudat} T.~I.,  {Price} M.~A.,  {Cai} X.,   {Pereyra} M.,
+  2023, \mn@doi [arXiv e-prints] {10.48550/arXiv.2307.00056}, \href
+  {https://ui.adsabs.harvard.edu/abs/2023arXiv230700056M} {p. arXiv:2307.00056}
+
+\bibitem[\protect\citeauthoryear{Petrosyan \& Handley}{Petrosyan \&
+  Handley}{2022}]{supernest}
+Petrosyan A.,  Handley W.,  2022, \mn@doi [Physical Sciences Forum]
+  {10.3390/psf2022005051}, 5
+
+\bibitem[\protect\citeauthoryear{Pártay, Bartók  \& Csányi}{Pártay
+  et~al.}{2010}]{statmech}
+Pártay L.~B.,  Bartók A.~P.,   Csányi G.,  2010, Efficient sampling of
+  atomic configurational spaces (\mn@eprint {arXiv} {0906.3544})
+
+\bibitem[\protect\citeauthoryear{Pártay., Csányi  \& Bernstein}{Pártay.
+  et~al.}{2021}]{materials}
+Pártay. L.~B.,  Csányi G.,   Bernstein N.,  2021, \mn@doi [The European
+  Physical Journal B] {10.1140/epjb/s10051-021-00172-1}, 94
+
+\bibitem[\protect\citeauthoryear{Sivia \& Skilling}{Sivia \&
+  Skilling}{2006}]{sivia}
+Sivia D.~S.,  Skilling J.,  2006, Data Analysis: A bayesian tutorial (Oxford
+  Science Publications).
+Oxford University Press
+
+\bibitem[\protect\citeauthoryear{Skilling}{Skilling}{2006}]{skilling}
+Skilling J.,  2006, \mn@doi [Bayesian Analysis] {10.1214/06-ba127}, 1
+
+\bibitem[\protect\citeauthoryear{Speagle}{Speagle}{2020}]{dynesty}
+Speagle J.~S.,  2020, \mn@doi [Monthly Notices of the Royal Astronomical
+  Society] {10.1093/mnras/staa278}, 493, 3132
+
+\bibitem[\protect\citeauthoryear{Swendsen \& Wang}{Swendsen \&
+  Wang}{1986}]{parallel_tempering}
+Swendsen R.~H.,  Wang J.-S.,  1986, \mn@doi [Phys. Rev. Lett.]
+  {10.1103/PhysRevLett.57.2607}, 57, 2607
+
+\bibitem[\protect\citeauthoryear{Trotta, Feroz, Hobson, Roszkowski  \& de
+  Austri}{Trotta et~al.}{2008}]{Trotta_2008}
+Trotta R.,  Feroz F.,  Hobson M.,  Roszkowski L.,   de Austri R.~R.,  2008,
+  \mn@doi [Journal of High Energy Physics] {10.1088/1126-6708/2008/12/024},
+  2008, 024
+
+\bibitem[\protect\citeauthoryear{Wang \& Landau}{Wang \&
+  Landau}{2001}]{wang_landau}
+Wang F.,  Landau D.~P.,  2001, \mn@doi [Phys. Rev. Lett.]
+  {10.1103/PhysRevLett.86.2050}, 86, 2050
+
+\bibitem[\protect\citeauthoryear{{Williams}, {Veitch}  \&
+  {Messenger}}{{Williams} et~al.}{2021}]{nessai}
+{Williams} M.~J.,  {Veitch} J.,   {Messenger} C.,  2021, \mn@doi [Physical
+  Review D] {10.1103/PhysRevD.103.103006}, \href
+  {https://ui.adsabs.harvard.edu/abs/2021PhRvD.103j3006W} {103, 103006}
+
+\makeatother
+\end{thebibliography}

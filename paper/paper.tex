@@ -39,7 +39,7 @@ $^{2}$Kavli Institute for Cosmology, Madingley Road, Cambridge, CB3 0HA, UK
 
 
 \begin{abstract}
-    This paper presents analytic results on the anatomy of nested sampling, from which a technique is developed to estimate the run-time of the algorithm that works for any nested sampling implementation. At each iteration, the dimensionality of the current set of samples is inferred, then used to extrapolate the known likelihood profile using a Gaussian model function, which allows the remaining evidence and prior volume at termination to be estimated. We test these methods on both toy models and true cosmological nested sampling runs. The method finds the right order of magnitude at all times, obtaining the true endpoint within standard error generally around the halfway point, and converges to the true value by the end of the run.  
+    This paper presents analytic results on the anatomy of nested sampling, from which a technique is developed to estimate the run-time of the algorithm that works for any nested sampling implementation. We test these methods on both toy models and true cosmological nested sampling runs. The method gives an order-of-magnitude prediction of the end point at all times, forecasting the true endpoint within standard error generally around the halfway point.  
 \end{abstract}
 
 \begin{keywords}
@@ -331,7 +331,7 @@ As with all Bayesian analyses, the distribution of $\beta$ is fixed up to a prio
 \label{fig:beta_comparison}
 \end{figure}
 \par
-One should keep in mind that despite the above theoretical reasoning, our introduction of the likelihood transformation was ultimately motivated by our wish to utilise the extra degree of freedom it provides. As we will see below, we recommend choosing the exact definition depending on what is useful for the transformation to do. 
+One should keep in mind that despite the above theoretical reasoning, our introduction of the likelihood transformation was ultimately motivated by our wish to utilise the extra degree of freedom it provides. As we will see below, we recommend choosing the exact definition depending on what is useful for the problem at hand.
 
 \subsection{Dimensionality}\label{sec:dimensionality}
 We can immediately use the inferred temperature to track how the effective dimensionality of the posterior changes throughout the run, which was previously inaccessible. \citet{Handley_2019} demonstrated that at the end of a run, a measure of the number of constrained parameters is given by the Bayesian model dimensionality (BMD), defined as the posterior variance of the information content:
@@ -368,25 +368,28 @@ It is important to appreciate that at lower compression the samples truly lie in
 \section{Endpoint prediction}\label{sec:endpoint}
 As described in \citet{supernest} and further explored in the talk and upcoming paper \citet{kcl_talk, scaling_frontier}, the time complexity of nested sampling is
 \begin{equation}
-    T \propto \langle \nlive \rangle \times \langle \mathcal{T}\{ \Like(\theta) \} \rangle \times \langle f_\mathrm{sampler} \rangle \times \DKL.
+    T \propto \langle \tfrac{1}{\nlive} \rangle^{-1} \times \langle \mathcal{T}\{ \Like(\theta) \} \rangle \times \langle f_\mathrm{sampler} \rangle \times \DKL.
 \end{equation}
-The second term is the relatively constant time per likelihood evaluation. The third is the average number of evaluations required to replace a dead point with a live point at higher likelihood, which is given by the implementation and usually does not vary in orders of magnitude. The primary unknown during a run, and therefore our primary interest, is the final term: the compression required to get from prior to posterior. 
+The first term is the harmonic mean of the number of live points $\sim\mathcal{O}(n)$, The second term is the average time per likelihood evaluation. The third is the average number of evaluations required to replace a dead point with a live point at higher likelihood, which is given by the implementation and usually does not vary in orders of magnitude. 
+The final term is the Kullback-Liebler divergence~\cref{eq:DKL}, the compression factor required to get from the prior to the posterior. This term is generally outside of user control, in most cases \textit{a priori} unknown, and of principle interest in this section.
 
 \subsection{The termination prior volume}
-To be exact, one wishes to find the compression factor $\log X_ \mathrm{f}$ at which the termination criterion is met, which is larger in magnitude than $\DKL$ (\cref{fig:logX_distribution}). The problem is that at an intermediate iteration we only know the posterior up to the maximum log-likelihood live point, which until just before the end is quite far from the posterior bulk. 
+Making the above discussion more precise, we wish to find the compression factor $\log X_ \mathrm{f}$ at which the termination criterion is met, which is larger in magnitude than $\DKL$ (\cref{fig:logX_distribution}). The difficulty is that at an intermediate iteration we only know the posterior up to the maximum log-likelihood live point, which until just before the end is far from the posterior bulk. 
 \par
 In order to get an idea of where the true posterior bulk sits, we need to predict what the posterior looks like past the highest live point. We do this by \textit{extrapolating} the known likelihood profile; that is, the trajectory of $\Like(X)$ traced out by the live and dead points. 
+One would never use this predicted posterior to perform inference, since more accuracy can always be achieved by simply finishing the run. However, we will demonstrate it is sufficient for making a run-time prediction for $\log X_\mathrm{f}$. 
 \par
-One would never use this predicted posterior to do inference, since more accuracy can always be achieved by simply finishing the run. However, it is more than sufficient for making a prediction for $\log X_\mathrm{f}$. Quantitatively, this proceeds as follows: fit a function $f(X, \phi)$  with some parameters $\phi$ to the known likelihood profile, which allows us to express the prior volume we need to compress to as
+Quantitatively, this proceeds as follows: fit a function $f(X, \phi)$  with some parameters $\phi$ to the known likelihood profile, which allows us to express the prior volume we need to compress to as
 \begin{equation}
 	\Delta \mathcal{Z} = \epsilon \mathcal{Z}_\mathrm{tot},
 \end{equation}
+or equivalently
 \begin{equation}\label{endpoint}
 	\int_0^{X_\mathrm{f}} f(X, \phi)\ \mathrm{d}X = \epsilon \left( \int_0^{X_i} f(X, \phi)\ \mathrm{d}X + \mathcal{Z}_\mathrm{dead} \right),
 \end{equation}
 where $X_i$ is the volume of the iteration we have currently compressed to, and $\mathcal{Z}_\mathrm{dead}$ is the evidence we have accumulated up to this point. $X_\mathrm{f}$ can then be identified by solving the above equation either analytically or numerically. 
 \par
-Once $X_\mathrm{f}$ is known, the corresponding iteration count depends on the live point schedule. The conversion is easiest in the constant $\nlive$ case; at each iteration $\log X$ decreases by $1/n$, so the total number of iterations $N_\mathrm{f}$ will be
+Once $X_\mathrm{f}$ is known, the corresponding iteration count depends on the live point schedule. For example in the constant $\nlive$ case at each iteration $\log X$ decreases by $1/n$, so the total number of iterations $N_\mathrm{f}$ would be
 \begin{equation}
 	N_\mathrm{f} = - n\log X_\mathrm{f} .
 \end{equation}
@@ -400,7 +403,7 @@ A key observation is that the Bayesian model dimensionality is the equivalent di
 The extrapolation then proceeds thus:
 \begin{enumerate}[leftmargin=*]
     \item Find the current dimensionality ${d}^{(i)}_G$ of the posterior at the Bayesian temperature
-    \item Take the live point profile and do a least squares fit to \eqref{gaussian}, stipulating that $d = {d}^{(i)}_G$ to infer $\logLmax$ and $\sigma$ 
+    \item Take the live point profile and perform a least squares fit to \eqref{gaussian}, stipulating that $d = {d}^{(i)}_G$ to infer $\logLmax$ and $\sigma$ 
     \item Use the likelihood predicted by these parameters to solve \eqref{endpoint} for $X_\mathrm{f}$
 \end{enumerate}
 The advantage of fitting a Gaussian is that the procedure can be sped up analytically. Firstly, the least squares regression is trivial because analytic estimators exist; the cost function 
@@ -429,23 +432,21 @@ where $\gamma_k = \Gamma_{d/2}\left(X_k^{2/d}/2\sigma^2\right)$ is the lower inc
 \end{equation}
 and $N_\mathrm{f}$ is of course just $-n$ multiplied by this. Intuitively, the above procedure can be thought of as inferring the number of constrained parameters, then extrapolating them up to find the point at which they will be fully constrained. 
 \par
-One might wonder why we do not obtain $d$ via least squares regression together with the other parameters; extensive testing has shown it to be far less stable. 
+One might wonder why we do not obtain $d$ via least squares regression together with the other parameters; extensive testing has shown this approach to be far less stable. 
 
 \subsection{Alternative approaches}
-More comprehensive Bayesian approaches, perhaps including \textit{a priori} information about the likelihood or greater flexibility in the fitting function, could certainly do better than what we have just presented. However, such methods would not befit \textit{run-time} prediction which has a much more limited computational budget, hence the more practical approach we have adopted. Here, we discuss as a benchmark alternative approaches to endpoint estimation that have a comparable computational complexity. 
+More comprehensive Bayesian approaches, perhaps including \textit{a priori} information about the likelihood or greater flexibility in the fitting function, could likely perform better than what we have just presented. However, such methods would not befit \textit{run-time} prediction which has a much more limited computational budget, hence the more pragmatic approach we have adopted. Here, we discuss as a benchmark alternative approaches to endpoint estimation that have a comparable computational complexity. 
 \subsubsection{Integral progress}
-One alternative approach, used in \textsc{Ultranest} \citep{ultranest}, derives a progress bar based on the fraction of the accumulated integral compared to the remaining integral, approximated as 
+An alternative approach used in \textsc{Ultranest} \citep{ultranest} derives a progress bar based on the fraction of the accumulated integral compared to the remaining integral, approximated as 
 \begin{equation}\label{eq:integral_progress}
     \mathcal{Z}_\mathrm{rem} \approx \Like_\mathrm{max}^{\mathrm{live}} X_i.
 \end{equation}
-There are a few problems here. Firstly, run-time is proportional to compression rather than accumulation of the integral, since it takes just as long to traverse the width of the bulk as it does any other width. Secondly, because of the point-like nature of the posterior mid-run, the remaining integral approximated as such holds nearly all of the evidence, so the relative fraction of the accumulated and remaining evidence is simply be zero for most of the run. Furthermore, approximation \eqref{eq:integral_progress} is always an underestimate, because as previously found the maximum live point is generally nowhere near the true maximum.
-\par
-This approach can be useful in low dimensions when the live points are always near the maximum, but in general is less reliable.
+This has a several shortcomings. First, run-time is proportional to compression rather than accumulation of the integral, since it takes just as long to traverse the width of the bulk as it does any other width. Second, because of the point-like nature of the posterior mid-run, the remaining integral approximated as such holds nearly all of the evidence, so the relative fraction of the accumulated and remaining evidence is almost zero for most of the run. Finally, approximation \eqref{eq:integral_progress} is always an underestimate, because as previously found the maximum live point is generally nowhere near the true maximum. This approach can however be useful in the low dimensions appropriate for \textsc{Ultranest} when the live points are always near the maximum, but in general is less reliable.
 
 \subsubsection{Extrapolating evidence increments}
-Seasoned users of nested sampling might be curious how the method compares to simply extrapolating the increments of evidence to roughly estimate when the evidence converges. We do this for a spherical Gaussian and compare it to our method. At an intermediate stage of the run, the most recent outputs might look something like that shown in the first two columns of the table in \cref{fig:inc_extrapolate}. Extrapolating those data to a linear and exponential profile yields endpoint estimates plotted in the graph to the right. 
+Seasoned watchers of nested sampling runs might be curious how the method compares to simply extrapolating the increments of evidence to roughly estimate when the evidence converges. We do this for a spherical Gaussian and compare it to our method. At an intermediate stage of the run, the most recent outputs might look something like that shown in the first two columns of the table in \cref{fig:inc_extrapolate}. Extrapolating those data to a linear and exponential profile yields endpoint estimates plotted in the graph to the right. 
 \par
-The linear extrapolation is clearly an underestimate, since it fails to account for the long tail of the nonlinear profile. The increments are also not quite exponential, since the exponential fit leads to a large over-prediction. The predicted endpoint over the course of a run for $d = 16$, $\sigma = 0.01$, as shown in \cref{fig:inc_predictions}, shows the same result. One might expect an average to be more accurate, but this tends to be biased towards the exponential prediction, and there is no obvious choice of weighting that would fix this.
+The linear extrapolation is clearly an underestimate, since it fails to account for the long tail of the nonlinear profile. The increments are also not exactly exponential, since the exponential fit leads to a large over-prediction. The predicted endpoint over the course of a run for $d = 16$, $\sigma = 0.01$, as shown in \cref{fig:inc_predictions}, shows the same result. One might expect an average to be more accurate, but this tends to be biased towards the exponential prediction, and there is no obvious choice of weighting that would fix this.
 \par
 More importantly, we find that for real likelihoods which have an element of noise the extrapolation often diverges, for instance when the increments do not monotonically decrease. Directly extrapolating the evidence increments is therefore far less stable than the previous method, and generally not a reliable method for prediction.
 \begin{figure}
@@ -476,13 +477,14 @@ iteration & log Z  & $\Delta\log Z$   \\
 \end{figure}
 \begin{figure}
 \includegraphics{figures/inc_predictions.pdf}
-\caption{Endpoint predictions for a spherical Gaussian, with $1-2\sigma$ uncertainties shaded. Extrapolating the evidence increments in a linear/exponential manner under/over-predicts the endpoint, both of which do considerably worse than the method of extrapolating the likelihood.}
+\caption{Endpoint predictions for a spherical Gaussian, with $1-2\sigma$ uncertainties shaded. Extrapolating the evidence increments in a linear/exponential manner under/over-predicts the endpoint, both of which perform considerably worse than the method of extrapolating the likelihood.}
 \label{fig:inc_predictions}
 \end{figure}
 
 \section{Results}\label{sec:results}
-Now that we have a method for predicting the endpoint, it can be tested on a range of distributions. We begin by considering a series of toy examples to explore the capabilities and limitations of the method, before presenting results for real cosmological chains.
+We now test the approach established in the previous section on a range of distributions. We begin by considering a series of toy examples to explore the capabilities and limitations of the method, before presenting results for real cosmological chains.
 \subsection{Toy examples}
+Throughout the toy examples we make use the perfect nested sampling~\citep{Keeton_2011,2018BayAn..13..873H} framework implemented in \textsc{anesthetic}~\cite{anesthetic}.
 \subsubsection{Gaussians}
 Predictions for spherical Gaussians of various dimensions are shown in \cref{fig:gauss_predictions} as a benchmark for when fitting a Gaussian distribution is exact. In all endpoint prediction plots, the shading indicates the $1-2\sigma$ uncertainties. All were run with $\nlive = 500$ except for one $\nlive=2000$ for comparison, with each Gaussian having a width of $\sigma = 0.01$. The correct endpoint is recovered to within standard error at all points except the very beginning, when the parameters have hardly been constrained. 
 \par
@@ -495,22 +497,22 @@ We note that as with nested sampling in general, increasing $\nlive$ improves th
 \label{fig:gauss_predictions}
 \end{figure*}
 We also observe the effect of elongating the Gaussian, using the same example as \cref{sec:elongated}. \cref{fig:elongated_logXfs} shows a step-like trend similar to the inferred dimensionalities, reflecting the fact that the full dimensionality is undetectable at lower compression factors. The endpoint for a likelihood whose remaining three directions are completely unconstrained coincides with our predictions at early iterations, showing that the two cases are indistinguishable. 
-\begin{figure*}
+\begin{figure}
 \begin{center}
     \includegraphics{figures/elongated_logXfs}
 \end{center}
 \caption{Endpoint prediction for an elongated Gaussian. At early stages, the full dimensionality is undetectable, and the endpoint is predicted to be the same as for a likelihood with three unconstrained directions. Only once the prior has been compressed enough to constrain the other three directions does the prediction converge to the true value.}
 \label{fig:elongated_logXfs}
-\end{figure*}
+\end{figure}
 
 \subsubsection{Cauchy}
 One case that might be expected to cause problems is the pathological Cauchy distribution, which is far from a Gaussian. \cref{fig:cauchy_predictions} shows the predictions for a likelihood of the form
 \begin{equation}
 	\log\mathcal{L} = \log\mathcal{L}_\mathrm{max} - \frac{1 + d}{2} \log \left(1 + \frac{X^2}{\gamma^2}\right),
 \end{equation}
-choosing $d = 10$ and allowing $\gamma$ to vary. The correct estimate is obtained to within standard error by about halfway, but before that is quite off. The key limitation is that the estimate is wrong early on not because the compression is anisotropic, or that there is a phase transition; rather, it is a limitation of the reducing the likelihood to a Gaussian via the BMD, which is itself less stable for a Cauchy.
+choosing $d = 10$ and allowing $\gamma$ to vary. The correct estimate is obtained to within standard error by about halfway, but before that is inaccurate. The key limitation is that the estimate is wrong early on, not because the compression is anisotropic, or that there is a phase transition; but rather as a limitation of the reducing the likelihood to a Gaussian via the BMD, which is itself less stable for a Cauchy.
 \par
-Nonetheless, the right order of magnitude is obtained at all times, so this is not a major concern. The Cauchy is also a pathological case, and the same problem does not rear its head in more realistic cases, as we shall see next.
+Nevertheless, the right order of magnitude is obtained at all times, so this remains sufficient for most use-cases. The Cauchy is also a pathological case, and the same problem does not in practice appear for more realistic cases, as we shall see next.
 \begin{figure*}
 \begin{center}
     \includegraphics{figures/cauchy_predictions.pdf}
@@ -536,12 +538,84 @@ The \textsc{SH0ES}, \textsc{BAO} and \textsc{lensing} chains are `easy' low $\DK
 \section{Conclusion}
 We have derived new analytic results to make an anatomy of nested sampling, understanding the progression of a run via the compression of prior volume, the increase in log-likelihood, the inferred temperature schedule, and the convergence of the sample dimensionality. From these analyses, we developed a method for predicting the endpoint of a nested sampling run, by using the inferred Bayesian model dimensionality mid-run to extrapolate the known likelihood profile. 
 \par
-The method in general converges to the correct endpoint by about the halfway point, and gets the correct order of magnitude throughout. Consistent predictions are obtained for both toy and cosmological examples. The accuracy is typically limited by the information available mid-run, either because of a phase transition or because the anisotropy of the nested sampling compression. Pathological distributions, such as a Cauchy, lead to less stable inferences of the dimensionality and expose the limitations of a Gaussian approximation, though the order of magnitude is still correct.
+The method in general converges on a correct prediction of endpoint by about halfway, and gets the correct order of magnitude throughout. Consistent predictions are obtained for both toy and cosmological examples. The accuracy is typically limited by the information available mid-run, either because of a phase transition or because the anisotropy of the nested sampling compression. Pathological distributions, such as a Cauchy, lead to less stable inferences of the dimensionality and expose the limitations of a Gaussian approximation, though the order of magnitude is still correct.
 \par
 Further work can be done to experiment with more flexible basis functions for regression of the likelihood profile, so that it is less dependent on the Gaussian approximation.
 
-\section{Code availability}
+\section*{Code availability}
 A package implementing the endpoint prediction mechanism is in development for easy plug-in to existing implementations of nested sampling. The latest updates can be found at \href{https://github.com/zixiao-h/aeons}{github.com/zixiao-h/aeons}.
+
+\section*{Acknowledgements}
+WJH is supported by the Royal Society as a Royal Society University Research Fellow at the University of Cambridge. AB was supported by a Cambridge Mathematical Placement and the Royal Society summer studentship. ZH was supported by a Royal Society summer studentship. We thank Mike Hobson for helpful discussion during ZH Part III viva.
+
+
+\appendix
+\section{The maximum live log-likelihood}\label{sec:logLmax}
+Assume a Gaussian likelihood
+\begin{equation}\label{eq:logL}
+	\log\mathcal{L} = \log\mathcal{L}_\mathrm{max} - X^{2/d}/2\sigma^2.
+\end{equation}
+Providing that $\sigma^d \ll 1$, the posterior can be approximated as
+\begin{equation}
+    P(X) = \tfrac{1}{(2\pi\sigma^2)^{d/2}} e^{-X^{2/d}/2\sigma^2}.
+    \label{eqn:PX}
+\end{equation}
+The distribution of the true posterior in $\log\mathcal{L}$ is therefore
+\begin{equation}
+    P(\log\mathcal{L}) = \frac{1}{\Gamma\left(\frac{d}{2}\right)}e^{\log\mathcal{L}-\log\mathcal{L}_\mathrm{max}} (\log\mathcal{L}_\mathrm{max}-\log\mathcal{L})^{\frac{d}{2}-1}
+\end{equation}
+i.e. $2(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}) \sim \chi^2_{d}$. The posterior average and variance of $\log \mathcal{L}$ are given by
+\begin{equation}
+    \langle\log\mathcal{L}\rangle_\mathcal{P} = \log\mathcal{L}_\mathrm{max} - \frac{d}{2},  \quad \mathrm{Var}(\log\mathcal{L})_\mathcal{P} = \frac{d}{2}.
+\end{equation}
+Meanwhile, the live points are uniformly distributed over the constrained prior and hence have probability distribution
+\begin{multline}
+	P(\log\mathcal{L}) = \frac{d}{2}\frac{(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L})^{\frac{d}{2}-1}}{(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}_i)^{\frac{d}{2}}} \\
+    [\log\mathcal{L}_i < \log\mathcal{L} <\log\mathcal{L}_\mathrm{max}],
+    \label{eq:PL}
+\end{multline}
+It is helpful at this stage to define a parameter
+\begin{equation}
+    y = \frac{\log\mathcal{L}-\log\mathcal{L}_i}{\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}_i}
+    \label{eq:y}
+\end{equation}
+as a normalised measure of how far a point is between the latest dead point and the maximum log-likelihood, with $y=0$ corresponding to $\mathcal{L}_i$ and $y=1$ to $\mathcal{L}_\mathrm{max}$, so that
+\begin{equation}
+    P(y) = \frac{d}{2}(1-y)^{\frac{d}{2}-1} \quad [0<y<1].
+    \label{eq:Py}
+\end{equation}
+We now seek the distribution for the maximum likelihood of the live points, $\log\mathcal{L}_\mathrm{max}^{\mathrm{live}}$. Using the result that the maximum of $n$ variables with cumulative distribution $F(y)$ follows $\frac{d}{dy}( 1- (1-F(y))^n)$, we obtain
+\begin{multline}
+    P(y_\mathrm{max}^\mathrm{live}) = \frac{nd}{2}(1-y_\mathrm{max}^\mathrm{live})^{\frac{d}{2}-1}\left(1-(1-y_\mathrm{max}^\mathrm{live})^{\frac{d}{2}}\right)^{n-1}\\ 
+    [0<y_\mathrm{max}^\mathrm{live}<1],
+    \label{eq:Pyhat}
+\end{multline}
+which may be roughly summarised as
+\begin{multline}
+    y_\mathrm{max}^\mathrm{live} \sim 1-\frac{\Gamma(1+\frac{2}{d})\Gamma(1+n)}{\Gamma(1+\frac{2}{d}+n)} \\
+     \pm \left( \frac{\Gamma(1+n)\Gamma(1+\frac{4}{d})}{\Gamma(1+\frac{4}{d}+n)} - \frac{\Gamma(1+\frac{2}{d})^2 \Gamma(1+n)^2}{\Gamma(1+\frac{2}{d}+n)^2}\right)^{\frac{1}{2}},
+    \label{eq:ymax}
+\end{multline}
+or in the large $d$, $n$ limit
+\begin{align}
+    \lim_{d\to\infty} y_\mathrm{max}^\mathrm{live} &\sim \frac{2H_n}{d} \pm \left(\frac{2(\pi^2 - 6\Psi^{(1)}(1+n))}{3d^2}\right)^{\frac{1}{2}},
+    \label{eq:ymaxd}\\
+    \lim_{d,n\to\infty} y_\mathrm{max}^\mathrm{live} &\sim \frac{2\log n}{d} \pm \sqrt{\frac{2}{3}}\frac{\pi}{d},
+    \label{eq:ymaxdn}
+\end{align}
+where $\psi^{(1)}$ is the trigamma function and $H_n$ is the $n$th harmonic number.
+\par
+This shows that in general the live points are nowhere near the maximum log-likelihood at any iteration, though they steadily squeeze the interval $[\log\mathcal{L}_i,\log\mathcal{L}_\mathrm{max}]$. In particular, in high dimensions $n$ only gets us harmonically/logarithmically closer, whilst $d$ pushes us linearly further away.
+
+WHCOMMENT: How sure are we of this statement? I agree nested sampling is slower than gradient descent at maximising, but it still converges exponentially. What is the approximation of \cref{eq:xf} in this instance?
+
+WHCOMMENT: Is it worth hiding all these big results in the appendix -- it's not that long, and I think readers must read it to pace themselves through the maximum arguments?
+
+WHCOMMENT: $P(\log\mathcal{L})$ for the dead points?
+
+WHCOMMENT: maxmimum $(n)$ iteration notation?
+
+WHCOMMENT: \cref{fig:last_live_point} move legend.
 
 \bibliographystyle{mnras}
 \bibliography{references}
