@@ -1,3 +1,22 @@
+## Further updates
+<!-- - Rasterise dead points figure to reduce loading time -->
+- Rewrite log-likelihood section to incorporate appendix
+- Add results on the distance between the posterior and the maximum
+
+WHCOMMENT: How sure are we of this statement? I agree nested sampling is slower than gradient descent at maximising, but it still converges exponentially. What is the approximation of \cref{eq:xf} in this instance?
+
+WHCOMMENT: Is it worth hiding all these big results in the appendix -- it's not that long, and I think readers must read it to pace themselves through the maximum arguments?
+
+WHCOMMENT: $P(\log\mathcal{L})$ for the dead points?
+
+WHCOMMENT: maxmimum $(n)$ iteration notation?
+
+WHCOMMENT: \cref{fig:last_live_point} move legend.
+
+## Other to-dos
+Check rendering of document before final submission.
+Abstract - ASCII renders more nicely 
+
 ## General comments:
 
 <!-- 1) You should expand the citation list. Buchner's review is an excellent source (and should also be cited alongside Ashton): -->

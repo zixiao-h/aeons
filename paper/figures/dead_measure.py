@@ -10,17 +10,20 @@ from aeons.utils import *
 
 nlive = 100
 samples = get_samples('planck_gaussian_100', reduced=False)[1]
+ndeads = range(nlive*20, nlive*100, nlive*20)
+prev = np.array([20, 40, 40, 40]) * nlive
+fig, axes = plt.subplots(1,4, figsize=(7,2))
 
 x = 'omegabh2'
 y = 'omegach2'
 
-fig, axes = plt.subplots(1,4, figsize=(7,2))
-
-for ax in axes:
+for i, ax in enumerate(axes):
     ax.set_xticks([])
     ax.set_yticks([])
     ax.set_box_aspect(1)
-    ax.scatter(samples[x], samples[y], s=0.1)
+    points = samples.iloc[ndeads[i] - prev[i] : ndeads[i]]
+    ax.scatter(points[x], points[y], s=0.1)
+    # ax.scatter(samples[x], samples[y], s=0.1)
 
 axes[0].get_children()[-1].get_zorder()
 axes[0].set_zorder(10)
@@ -92,8 +95,8 @@ fig.canvas.draw()
 fig.canvas.flush_events()
 plot_live_points = True
 
-for k, (i, ax0, ax1) in enumerate(zip(range(nlive*20, nlive*100, nlive*20), axes[:-1], axes[1:])):
-    if plot_live_points:
+for k, (i, ax0, ax1) in enumerate(zip(ndeads, axes[:-1], axes[1:])):
+    if plot_live_points:    
         live = samples.live_points(i)
         ax0.scatter(live[x], live[y], s=2, color=f'C{k+1}')
         ax1.scatter(live[x], live[y], s=2, color=f'C{k+1}')
@@ -108,4 +111,3 @@ else:
     filename = 'dead_measure.pdf'
 
 fig.savefig(filename, transparent=False, bbox_inches='tight')
-
