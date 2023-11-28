@@ -36,7 +36,10 @@ for ax in axs:
     ax.set_xticks([0, -points.logX().iloc[ndead]], [0, r'$-\log X_i$'])
 axs[0].set_title(r'$\mathcal{L}^\beta$', fontsize=8)
 axs[1].set_title('$\\mathcal{P}(\\log X) = \\mathcal{L}^\\beta X$', fontsize=8)
-axs[0].legend(loc='upper left', fontsize=5)
+
+from matplotlib.patches import Patch
+lines = [Patch(color=color, label=label) for color, label in zip(colors, labels)]
+axs[0].legend(handles=lines, ncol=3, bbox_to_anchor=(1.8, -0.3), fontsize=8)
 # axs[1].margins(x=0)
 
 fig.subplots_adjust(left=.01, right=.99, wspace=.05)

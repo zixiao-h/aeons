@@ -1,15 +1,16 @@
 ## Further updates
 <!-- - Rasterise dead points figure to reduce loading time -->
-- Rewrite log-likelihood section to incorporate appendix
-- Add results on the distance between the posterior and the maximum
+<!--     - No easy way to do this, but skipped plotting dead points underneath live points to reduce number of artists -->
 
-WHCOMMENT: How sure are we of this statement? I agree nested sampling is slower than gradient descent at maximising, but it still converges exponentially. What is the approximation of \cref{eq:xf} in this instance?
+<!-- - Explanation for uncertainties in endpoint estimate -->
 
-WHCOMMENT: Is it worth hiding all these big results in the appendix -- it's not that long, and I think readers must read it to pace themselves through the maximum arguments?
+<!-- WHCOMMENT: How sure are we of this statement? I agree nested sampling is slower than gradient descent at maximising, but it still converges exponentially. What is the approximation of \cref{eq:xf} in this instance? -->
 
-WHCOMMENT: $P(\log\mathcal{L})$ for the dead points?
+<!-- WHCOMMENT: Is it worth hiding all these big results in the appendix -- it's not that long, and I think readers must read it to pace themselves through the maximum arguments? -->
 
-WHCOMMENT: maxmimum $(n)$ iteration notation?
+<!-- WHCOMMENT: $P(\log\mathcal{L})$ for the dead points? -->
+
+<!-- WHCOMMENT: maxmimum $(n)$ iteration notation? -->
 
 WHCOMMENT: \cref{fig:last_live_point} move legend.
 

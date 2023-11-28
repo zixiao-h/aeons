@@ -53,23 +53,23 @@ The order of magnitude run-time of an algorithm, that is, whether termination is
 \par
 This paper sets out a principled manner of endpoint estimation for nested sampling at each intermediate stage (as shown in \cref{fig:polychord_output}), the key idea being to use the existing samples to predict the likelihood in the region we have yet to sample from. We begin with an overview of nested sampling in \cref{sec:background}, followed by an examination of the anatomy of a nested sampling run to establish key concepts for endpoint prediction in \cref{sec:anatomy}. \cref{sec:endpoint} then outlines the methodology we use, including discussion and comparisons to previous attempts. Finally, \cref{sec:results} presents the results and discussions for toy and cosmological chains, before we conclude.
 \begin{figure}
-%\begin{Verbatim}[frame=single, commandchars=\\\{\}]
-%\textcolor{red}{Predicted endpoint: 25054 +/- 242}
-%\textcolor{red}{Progress: [=================>########] 72%}
-%___________________
-%lives      |   500 |
-%phantoms   | 24310 |
-%posteriors | 18018 |
-%equals     |   245 |
-%-------------------
-%ncluster   =  1/1
-%ndead      =  18018
-%nposterior =  18018
-%nequals    =  249
-%nlike      =  4159049
-%<nlike>    =  491.04 (9.82 per slice)
-%log(Z)     =  -12.55 +/- 0.27
-%\end{Verbatim}
+\begin{Verbatim}[frame=single, commandchars=\\\{\}]
+\textcolor{red}{Predicted endpoint: 25054 +/- 242}
+\textcolor{red}{Progress: [=================>########] 72%}
+___________________
+lives      |   500 |
+phantoms   | 24310 |
+posteriors | 18018 |
+equals     |   245 |
+-------------------
+ncluster   =  1/1
+ndead      =  18018
+nposterior =  18018
+nequals    =  249
+nlike      =  4159049
+<nlike>    =  491.04 (9.82 per slice)
+log(Z)     =  -12.55 +/- 0.27
+\end{Verbatim}
 \caption{Output from \textsc{PolyChord} for a typical nested sampling run. The predicted endpoint, shown in red, is calculated using the method described in this paper.}
 \label{fig:polychord_output}
 \end{figure}
@@ -119,7 +119,7 @@ The bulk of the posterior lies within a prior volume ${X = e^{-\DKL}}$, which is
 \begin{equation}
     \langle\log X_i\rangle = -\sum_{k=1}^i \frac{1}{n_k}, \quad \mathrm{Var}(\log X_i) = \sum_{k=1}^i \frac{1}{n_k^2}.
 \end{equation}
-A constant step size in $\log X$ corresponds to a geometrically constant measure for the dead points , which is exactly needed to overcome the curse of dimensionality.
+A constant step size in $\log X$ corresponds to a geometrically constant measure for the dead points, which is exactly needed to overcome the curse of dimensionality.
 \begin{figure*}
 \begin{center}
     \includegraphics{figures/dead_measure_live.pdf}
@@ -167,24 +167,58 @@ i.e. $2(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}) \sim \chi^2_{d}$, with mea
 \begin{equation}
     \langle\log\mathcal{L}\rangle_\mathcal{P} = \log\mathcal{L}_\mathrm{max} - \frac{d}{2},  \quad \mathrm{Var}(\log\mathcal{L})_\mathcal{P} = \frac{d}{2}.
 \end{equation}
-A full picture of the distribution is visualised in grey in \cref{fig:logL_distribution}. 
+One can also derive the individual distributions for the live and dead points in log-likelihood. Note that this is merely the distribution of the \textit{values} of the points, without their nested sampling weights. The dead distribution is
+\begin{equation}
+    P(\log\Like) = \frac{\mathrm{d} \log X}{\mathrm{d} \log\Like} P(\log X) \propto \frac{dn}{2(\logLmax - \log\Like)},
+\end{equation}
+since the log-densities of the dead point prior volumes are proportional to the live point number at any given iteration. Meanwhile, the live points are uniformly distributed, and so have the distribution 
+\begin{multline}
+	P(\log\mathcal{L}) = \frac{d}{2}\frac{(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L})^{\frac{d}{2}-1}}{(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}_i)^{\frac{d}{2}}} \\
+    [\log\mathcal{L}_i < \log\mathcal{L} <\log\mathcal{L}_\mathrm{max}].
+    \label{eq:PL}
+\end{multline}
+\cref{fig:logL_distribution} shows the distinction between the distributions of the live and dead point values, as well as the posterior. 
 \par
-Suppose we are now at iteration $i$, with the latest dead point having likelihood $\log \Like_i$. As with the prior volumes, we shall attempt to quantify how much extra information about the likelihood is contained in the live points. For convenience, we will normalise the live point likelihoods as
+How much further do the live points penetrate in log-likelihood? We seek the distribution for the maximum likelihood of the live points, $\log\Like_{(n_i)}^{\mathrm{live}}$, where we have used the notation of order statistics to denote $x_{(n)}$ as the maximum of $n$ points.  For convenience, we will normalise the likelihoods as
 \begin{equation}
     y = \frac{\log\mathcal{L}-\log\mathcal{L}_i}{\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}_i}
-    \label{eq:y}
+    \label{eq:normalised_likelihood}
 \end{equation}
-so that $y=0$ corresponds to the latest dead point and $y=1$ to the maximum. At each step, $y$ increases by  
+so that $y=0$ corresponds to the latest dead point at $\log\Like_i$ and $y=1$ to the maximum. The live point distribution simplifies to
 \begin{equation}
+    P(y) = \frac{d}{2}(1-y)^{\frac{d}{2}-1} \quad [0<y<1].
+    \label{eq:Py}
+\end{equation}
+Using the result that the maximum of $n_i$ variables with cumulative distribution $F(y)$ follows $\frac{d}{dy}( 1- (1-F(y))^{n_i})$, we obtain
+\begin{multline}
+    P(y_{(n_i)}^\mathrm{live}) = \frac{n_i d}{2}(1-y_{(n_i)}^\mathrm{live})^{\frac{d}{2}-1}\left(1-(1-y_{(n_i)}^\mathrm{live})^{\frac{d}{2}}\right)^{n_i-1}\\ 
+    [0<y_{(n_i)}^\mathrm{live}<1],
+    \label{eq:Pyhat}
+\end{multline}
+which may be roughly summarised as
+\begin{multline}
+    y_{(n_i)}^\mathrm{live} \sim 1-\frac{\Gamma(1+\frac{2}{d})\Gamma(1+n_i)}{\Gamma(1+\frac{2}{d}+n_i)} \\
+     \pm \left( \frac{\Gamma(1+n_i)\Gamma(1+\frac{4}{d})}{\Gamma(1+\frac{4}{d}+n_i)} - \frac{\Gamma(1+\frac{2}{d})^2 \Gamma(1+n_i)^2}{\Gamma(1+\frac{2}{d}+n_i)^2}\right)^{\frac{1}{2}},
+    \label{eq:ymax}
+\end{multline}
+or in the large $d$, $n$ limit
+\begin{align}
+    \lim_{d\to\infty} y_{(n_i)}^\mathrm{live} &\sim \frac{2H_n}{d} \pm \left(\frac{2(\pi^2 - 6\Psi^{(1)}(1+n))}{3d^2}\right)^{\frac{1}{2}},
+    \label{eq:ymaxd}\\
+    \lim_{d,n\to\infty} y_{(n_i)}^\mathrm{live} &\sim \frac{2\log n}{d} \pm \sqrt{\frac{2}{3}}\frac{\pi}{d},
+    \label{eq:ymaxdn}
+\end{align}
+where $\psi^{(1)}$ is the trigamma function and $H_n$ is the $n$th harmonic number. This is a very small fraction in high dimensions, showing that until the end the live points are far from the posterior bulk. 
+\par
+Alternatively, the same result arrives intuitively from the fact that at each step, $y$ increases by  
+\begin{equation}\label{eq:dy}
     \lim_{\nlive \to \infty}\Delta y \approx \frac{\mathrm{d} y}{\mathrm{d}\log X} \Delta \log X = \frac{2}{d \nlive}, 
 \end{equation}
-which is constant. The log-likelihood therefore proceeds towards the maximum geometrically, with a `time constant' of $dn_i/2$. We can again sum the harmonic series to find that the maximum live point will be at
+so that by again summing the harmonic series, we get
 \begin{equation}
-    y_{(\nlive)}^{\mathrm{live}} = \frac{2\log \nlive}{d},
+    y_{(\nlive)}^{\mathrm{live}} = \frac{2\log \nlive}{d}.
 \end{equation}
-where we have used the notation of order statistics to denote $x_{(n)}$ as the maximum of $n$ points. This is a very small fraction in high dimensions, showing again that until the end the live points are far from the posterior bulk, and certainly nowhere near the maximum.
-\par
-The above also implies that the normalised distance between the highest and second highest live point is roughly 
+\cref{eq:dy} also implies that the normalised distance between the highest and second highest live point is roughly 
 \begin{equation}
     y_{(\nlive)}^{\mathrm{live}} - y_{(\nlive - 1)}^{\mathrm{live}} \approx \frac{2}{d}.
 \end{equation}
@@ -193,50 +227,10 @@ Before reaching the posterior bulk, $\logLmax - \log\Like_i > d/2$, so we must h
     \log \Like^{\mathrm{live}}_{(\nlive)} - \log \Like^\mathrm{live}_{(\nlive - 1)} > 1.
 \end{equation}
 In other words, the highest likelihood point is always at least an order of magnitude greater than the second highest. It is therefore typically the case that nearly all of the posterior mass is concentrated in a single point, the maximum live point, until the very end of the run when the prior volumes have shrunk enough to compensate.
-During the course of the run, the live points are always uniformly distributed over the constrained prior, and hence have probability distribution
-\begin{multline}
-	P(\log\mathcal{L}) = \frac{d}{2}\frac{(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L})^{\frac{d}{2}-1}}{(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}_i)^{\frac{d}{2}}} \\
-    [\log\mathcal{L}_i < \log\mathcal{L} <\log\mathcal{L}_\mathrm{max}],
-    \label{eq:PL}
-\end{multline}
-It is helpful at this stage to parameterise the live point log-likelihoods as
-\begin{equation}
-    y = \frac{\log\mathcal{L}-\log\mathcal{L}_i}{\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}_i}
-    \label{eq:y}
-\end{equation}
-as a normalised measure of how far a point is between the latest dead point and the maximum log-likelihood, with $y=0$ corresponding to $\mathcal{L}_i$ and $y=1$ to $\mathcal{L}_\mathrm{max}$, so that
-\begin{equation}
-    P(y) = \frac{d}{2}(1-y)^{\frac{d}{2}-1} \quad [0<y<1].
-    \label{eq:Py}
-\end{equation}
-We now seek the distribution for the maximum likelihood of the live points, $\log\mathcal{L}_\mathrm{max}^{\mathrm{live}}$. Using the result that the maximum of $n$ variables with cumulative distribution $F(y)$ follows $\frac{d}{dy}( 1- (1-F(y))^n)$, we obtain
-\begin{multline}
-    P(y_\mathrm{max}^\mathrm{live}) = \frac{nd}{2}(1-y_\mathrm{max}^\mathrm{live})^{\frac{d}{2}-1}\left(1-(1-y_\mathrm{max}^\mathrm{live})^{\frac{d}{2}}\right)^{n-1}\\ 
-    [0<y_\mathrm{max}^\mathrm{live}<1],
-    \label{eq:Pyhat}
-\end{multline}
-which may be roughly summarised as
-\begin{multline}
-    y_\mathrm{max}^\mathrm{live} \sim 1-\frac{\Gamma(1+\frac{2}{d})\Gamma(1+n)}{\Gamma(1+\frac{2}{d}+n)} \\
-     \pm \left( \frac{\Gamma(1+n)\Gamma(1+\frac{4}{d})}{\Gamma(1+\frac{4}{d}+n)} - \frac{\Gamma(1+\frac{2}{d})^2 \Gamma(1+n)^2}{\Gamma(1+\frac{2}{d}+n)^2}\right)^{\frac{1}{2}},
-    \label{eq:ymax}
-\end{multline}
-or in the large $d$, $n$ limit
-\begin{align}
-    \lim_{d\to\infty} y_\mathrm{max}^\mathrm{live} &\sim \frac{2H_n}{d} \pm \left(\frac{2(\pi^2 - 6\Psi^{(1)}(1+n))}{3d^2}\right)^{\frac{1}{2}},
-    \label{eq:ymaxd}\\
-    \lim_{d,n\to\infty} y_\mathrm{max}^\mathrm{live} &\sim \frac{2\log n}{d} \pm \sqrt{\frac{2}{3}}\frac{\pi}{d},
-    \label{eq:ymaxdn}
-\end{align}
-where $\psi^{(1)}$ is the trigamma function and $H_n$ is the $n$th harmonic number.
 \subsubsection*{Aside: nested sampling as a maximiser}
 Previous literature \citep{Akrami_2010, Feroz_2011} has explored the potential for nested sampling to be used as a global maximiser, given its ability to handle multi-modalities. In particular, the latter authors emphasised that posterior samplers such as nested sampling find the bulk of the \textit{mass}, not the maximum of the distribution, but that this can be remedied by tightening the termination criterion. We now use the machinery we have developed to put this statement on a more quantitative footing. 
 \par
-A more rigorous derivation (\cref{sec:logLmax}) shows that the maximum live point has mean and variance
-\begin{equation}\label{eq:ylivemax}
-	\lim_{d,\nlive\to\infty} y_\mathrm{max}^\mathrm{live} \sim \frac{2\log \nlive}{d} \pm \sqrt{\frac{2}{3}}\frac{\pi}{d}.
-\end{equation}
-Now let us take the dead point to be the termination point with likelihood $\log\Like_\mathrm{f}$ and prior volume $X_\mathrm{f}$, so that
+Let us take the current iteration to be the termination point with likelihood $\log\Like_\mathrm{f}$ and prior volume $X_\mathrm{f}$, so that
 \begin{equation}
 	\epsilon = \frac{\int_0^{X_\mathrm{f}} \mathcal{L}\ \mathrm{d}X}{\int_0^\infty \mathcal{L}\ \mathrm{d}X}.
 \end{equation}
@@ -254,7 +248,7 @@ We thus have an expression relating $\mathcal{L}_\mathrm{f}$ at termination to t
 \end{equation}
 In the event that we keep $\epsilon$ in, we replace $\frac{d}{2e}\to \frac{d}{2e}\epsilon^{2/d}$, so we can of course battle the $\frac{d}{2e}$ term, but this becomes exponentially difficult in high dimensions.
 \par
-Putting this together, taking $\mathcal{L}_i$ in \eqref{eq:normalised_likelihood} to be $\mathcal{L}_\mathrm{f}$, and combining this with \eqref{eq:ylivemax} we find
+Putting this together, taking $\mathcal{L}_i$ in \eqref{eq:normalised_likelihood} to be $\mathcal{L}_\mathrm{f}$ and combining this with \eqref{eq:ymaxdn}, we find
 \begin{equation}
     \boxed{
         \log{\mathcal{L}}_\mathrm{max}^\mathrm{live} \approx \log\mathcal{L}_\mathrm{max} - \frac{d}{2e} + \frac{\log n}{e} \pm \frac{\pi}{\sqrt{6}e}
@@ -262,7 +256,22 @@ Putting this together, taking $\mathcal{L}_i$ in \eqref{eq:normalised_likelihood
 \end{equation}
 showing that in general nested sampling will finish at a contour $d/2e$ away from the maximum log-likelihood. The final set of $n$ live points gets you $\log n/e$ closer, with a chance of getting $\sim\pi/\sqrt{6}e=0.472$ closer still by statistical fluctuation. 
 \par
-A plot of the log-likelihood distribution at the end of a run is shown in \cref{fig:logL_distribution}
+Making the termination criterion stricter therefore has limited returns in high-dimensions, if it is ultimately still based on the remaining evidence. However, nested sampling still shrinks around the maximum exponentially, so provided a good termination criterion is chosen, it will get there in reasonable time. What we are really interested in is the number of iterations required to get from the posterior bulk to the true maximum, which we will now calculate. At the posterior, we have roughly speaking
+\begin{equation}
+    (\log X, \log\Like) = (-\DKL, \logLmax - d/2).
+\end{equation}
+The prior volume $\log X_\delta$ at which the likelihood is within $\delta$ of the maximum can then be found by inverting \cref{eq:gaussian_logL}:
+\begin{equation}
+    \log X_\delta = -\DKL - \frac{d}{2} \left(\log \frac{d}{2} - \log \delta\right),
+\end{equation}
+which corresponds to an additional
+\begin{equation}
+    \Delta i = \frac{d}{2} \left(\log \frac{d}{2} - \log \delta\right)
+\end{equation}
+iterations after the bulk is reached. One would therefore expect a general distribution to take $\mathcal{O}(d \log d)$ iterations to get from the usual nested sampling stopping point to within an e-fold of the maximum, which can serve as a sanity check for the maximisation procedure. 
+\par
+A summary of the distances between the notable points at the end of a run is shown in \cref{fig:logL_distribution}.
+
 \begin{figure*}
 \begin{center}
     \includegraphics{figures/logL_distribution.pdf}
@@ -389,7 +398,7 @@ or equivalently
 \end{equation}
 where $X_i$ is the volume of the iteration we have currently compressed to, and $\mathcal{Z}_\mathrm{dead}$ is the evidence we have accumulated up to this point. $X_\mathrm{f}$ can then be identified by solving the above equation either analytically or numerically. 
 \par
-Once $X_\mathrm{f}$ is known, the corresponding iteration count depends on the live point schedule. For example in the constant $\nlive$ case at each iteration $\log X$ decreases by $1/n$, so the total number of iterations $N_\mathrm{f}$ would be
+Once $X_\mathrm{f}$ is known, the corresponding iteration count depends on the live point schedule. For example, in the constant $\nlive$ case $\log X$ decreases by $1/n$ at each iteration, so the total number of iterations $N_\mathrm{f}$ would be
 \begin{equation}
 	N_\mathrm{f} = - n\log X_\mathrm{f} .
 \end{equation}
@@ -432,7 +441,7 @@ where $\gamma_k = \Gamma_{d/2}\left(X_k^{2/d}/2\sigma^2\right)$ is the lower inc
 \end{equation}
 and $N_\mathrm{f}$ is of course just $-n$ multiplied by this. Intuitively, the above procedure can be thought of as inferring the number of constrained parameters, then extrapolating them up to find the point at which they will be fully constrained. 
 \par
-One might wonder why we do not obtain $d$ via least squares regression together with the other parameters; extensive testing has shown this approach to be far less stable. 
+Uncertainties in the final estimate are obtained by drawing many samples from the distribution of $d_\mathrm{G}$ defined by the Bayesian temperature, and repeating step two for each. One might wonder why we do not obtain $d$ via least squares regression together with the other parameters; extensive testing has shown this approach to be far less stable. 
 
 \subsection{Alternative approaches}
 More comprehensive Bayesian approaches, perhaps including \textit{a priori} information about the likelihood or greater flexibility in the fitting function, could likely perform better than what we have just presented. However, such methods would not befit \textit{run-time} prediction which has a much more limited computational budget, hence the more pragmatic approach we have adopted. Here, we discuss as a benchmark alternative approaches to endpoint estimation that have a comparable computational complexity. 
@@ -484,7 +493,7 @@ iteration & log Z  & $\Delta\log Z$   \\
 \section{Results}\label{sec:results}
 We now test the approach established in the previous section on a range of distributions. We begin by considering a series of toy examples to explore the capabilities and limitations of the method, before presenting results for real cosmological chains.
 \subsection{Toy examples}
-Throughout the toy examples we make use the perfect nested sampling~\citep{Keeton_2011,2018BayAn..13..873H} framework implemented in \textsc{anesthetic}~\cite{anesthetic}.
+Throughout the toy examples we make use the perfect nested sampling~\citep{Keeton_2011,2018BayAn..13..873H} framework implemented in \textsc{anesthetic}~\citep{anesthetic}.
 \subsubsection{Gaussians}
 Predictions for spherical Gaussians of various dimensions are shown in \cref{fig:gauss_predictions} as a benchmark for when fitting a Gaussian distribution is exact. In all endpoint prediction plots, the shading indicates the $1-2\sigma$ uncertainties. All were run with $\nlive = 500$ except for one $\nlive=2000$ for comparison, with each Gaussian having a width of $\sigma = 0.01$. The correct endpoint is recovered to within standard error at all points except the very beginning, when the parameters have hardly been constrained. 
 \par
@@ -510,7 +519,7 @@ One case that might be expected to cause problems is the pathological Cauchy dis
 \begin{equation}
 	\log\mathcal{L} = \log\mathcal{L}_\mathrm{max} - \frac{1 + d}{2} \log \left(1 + \frac{X^2}{\gamma^2}\right),
 \end{equation}
-choosing $d = 10$ and allowing $\gamma$ to vary. The correct estimate is obtained to within standard error by about halfway, but before that is inaccurate. The key limitation is that the estimate is wrong early on, not because the compression is anisotropic, or that there is a phase transition; but rather as a limitation of the reducing the likelihood to a Gaussian via the BMD, which is itself less stable for a Cauchy.
+choosing $d = 10$ and allowing $\gamma$ to vary. The correct estimate is obtained to within standard error by about halfway, but before that is inaccurate. The key limitation is that the estimate is wrong early on, not because the compression is anisotropic, or because there is a phase transition; but rather as a limitation of the reducing the likelihood to a Gaussian via the BMD, which is itself less stable for a Cauchy.
 \par
 Nevertheless, the right order of magnitude is obtained at all times, so this remains sufficient for most use-cases. The Cauchy is also a pathological case, and the same problem does not in practice appear for more realistic cases, as we shall see next.
 \begin{figure*}
@@ -523,7 +532,7 @@ Nevertheless, the right order of magnitude is obtained at all times, so this rem
 \end{figure*}
 
 \subsection{Cosmological examples}
-Finally, we evaluate the method on real cosmological chains. \cref{fig:lcdm_logXfs} presents the endpoints (calculated after the fact) for nested sampling runs for curvature quantification on several common cosmological data sets (details in \citet{curvature_tension}). 
+Finally, we evaluate the method on real cosmological chains. \cref{fig:lcdm_logXfs} presents the endpoints (calculated after the fact) for nested sampling runs for curvature quantification on several common cosmological data sets (details in \citealt{curvature_tension}). 
 \par
 The \textsc{SH0ES}, \textsc{BAO} and \textsc{lensing} chains are `easy' low $\DKL$ inferences, so it is expected that the correct endpoint is inferred practically from the start. The \textsc{Planck} endpoints, on the other hand, are not correct until at least midway through. However, this is expected from the covariance of the \textsc{Planck} likelihood, which consists of principal components of many scales and therefore elongated in many dimensions. It is therefore of the same class as the elongated Gaussian presented in \cref{sec:elongated}; the samples exist in a lower dimensional subspace mid-run, which slowly increases to the full dimensionality only at the end of the run.
 \begin{figure*}
@@ -543,79 +552,10 @@ The method in general converges on a correct prediction of endpoint by about hal
 Further work can be done to experiment with more flexible basis functions for regression of the likelihood profile, so that it is less dependent on the Gaussian approximation.
 
 \section*{Code availability}
-A package implementing the endpoint prediction mechanism is in development for easy plug-in to existing implementations of nested sampling. The latest updates can be found at \href{https://github.com/zixiao-h/aeons}{github.com/zixiao-h/aeons}.
+A package is in development to implement the endpoint prediction mechanism, for easy plug-in to existing implementations of nested sampling. The latest updates can be found at \href{https://github.com/zixiao-h/aeons}{github.com/zixiao-h/aeons}.
 
 \section*{Acknowledgements}
 WJH is supported by the Royal Society as a Royal Society University Research Fellow at the University of Cambridge. AB was supported by a Cambridge Mathematical Placement and the Royal Society summer studentship. ZH was supported by a Royal Society summer studentship. We thank Mike Hobson for helpful discussion during ZH Part III viva.
-
-
-\appendix
-\section{The maximum live log-likelihood}\label{sec:logLmax}
-Assume a Gaussian likelihood
-\begin{equation}\label{eq:logL}
-	\log\mathcal{L} = \log\mathcal{L}_\mathrm{max} - X^{2/d}/2\sigma^2.
-\end{equation}
-Providing that $\sigma^d \ll 1$, the posterior can be approximated as
-\begin{equation}
-    P(X) = \tfrac{1}{(2\pi\sigma^2)^{d/2}} e^{-X^{2/d}/2\sigma^2}.
-    \label{eqn:PX}
-\end{equation}
-The distribution of the true posterior in $\log\mathcal{L}$ is therefore
-\begin{equation}
-    P(\log\mathcal{L}) = \frac{1}{\Gamma\left(\frac{d}{2}\right)}e^{\log\mathcal{L}-\log\mathcal{L}_\mathrm{max}} (\log\mathcal{L}_\mathrm{max}-\log\mathcal{L})^{\frac{d}{2}-1}
-\end{equation}
-i.e. $2(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}) \sim \chi^2_{d}$. The posterior average and variance of $\log \mathcal{L}$ are given by
-\begin{equation}
-    \langle\log\mathcal{L}\rangle_\mathcal{P} = \log\mathcal{L}_\mathrm{max} - \frac{d}{2},  \quad \mathrm{Var}(\log\mathcal{L})_\mathcal{P} = \frac{d}{2}.
-\end{equation}
-Meanwhile, the live points are uniformly distributed over the constrained prior and hence have probability distribution
-\begin{multline}
-	P(\log\mathcal{L}) = \frac{d}{2}\frac{(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L})^{\frac{d}{2}-1}}{(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}_i)^{\frac{d}{2}}} \\
-    [\log\mathcal{L}_i < \log\mathcal{L} <\log\mathcal{L}_\mathrm{max}],
-    \label{eq:PL}
-\end{multline}
-It is helpful at this stage to define a parameter
-\begin{equation}
-    y = \frac{\log\mathcal{L}-\log\mathcal{L}_i}{\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}_i}
-    \label{eq:y}
-\end{equation}
-as a normalised measure of how far a point is between the latest dead point and the maximum log-likelihood, with $y=0$ corresponding to $\mathcal{L}_i$ and $y=1$ to $\mathcal{L}_\mathrm{max}$, so that
-\begin{equation}
-    P(y) = \frac{d}{2}(1-y)^{\frac{d}{2}-1} \quad [0<y<1].
-    \label{eq:Py}
-\end{equation}
-We now seek the distribution for the maximum likelihood of the live points, $\log\mathcal{L}_\mathrm{max}^{\mathrm{live}}$. Using the result that the maximum of $n$ variables with cumulative distribution $F(y)$ follows $\frac{d}{dy}( 1- (1-F(y))^n)$, we obtain
-\begin{multline}
-    P(y_\mathrm{max}^\mathrm{live}) = \frac{nd}{2}(1-y_\mathrm{max}^\mathrm{live})^{\frac{d}{2}-1}\left(1-(1-y_\mathrm{max}^\mathrm{live})^{\frac{d}{2}}\right)^{n-1}\\ 
-    [0<y_\mathrm{max}^\mathrm{live}<1],
-    \label{eq:Pyhat}
-\end{multline}
-which may be roughly summarised as
-\begin{multline}
-    y_\mathrm{max}^\mathrm{live} \sim 1-\frac{\Gamma(1+\frac{2}{d})\Gamma(1+n)}{\Gamma(1+\frac{2}{d}+n)} \\
-     \pm \left( \frac{\Gamma(1+n)\Gamma(1+\frac{4}{d})}{\Gamma(1+\frac{4}{d}+n)} - \frac{\Gamma(1+\frac{2}{d})^2 \Gamma(1+n)^2}{\Gamma(1+\frac{2}{d}+n)^2}\right)^{\frac{1}{2}},
-    \label{eq:ymax}
-\end{multline}
-or in the large $d$, $n$ limit
-\begin{align}
-    \lim_{d\to\infty} y_\mathrm{max}^\mathrm{live} &\sim \frac{2H_n}{d} \pm \left(\frac{2(\pi^2 - 6\Psi^{(1)}(1+n))}{3d^2}\right)^{\frac{1}{2}},
-    \label{eq:ymaxd}\\
-    \lim_{d,n\to\infty} y_\mathrm{max}^\mathrm{live} &\sim \frac{2\log n}{d} \pm \sqrt{\frac{2}{3}}\frac{\pi}{d},
-    \label{eq:ymaxdn}
-\end{align}
-where $\psi^{(1)}$ is the trigamma function and $H_n$ is the $n$th harmonic number.
-\par
-This shows that in general the live points are nowhere near the maximum log-likelihood at any iteration, though they steadily squeeze the interval $[\log\mathcal{L}_i,\log\mathcal{L}_\mathrm{max}]$. In particular, in high dimensions $n$ only gets us harmonically/logarithmically closer, whilst $d$ pushes us linearly further away.
-
-WHCOMMENT: How sure are we of this statement? I agree nested sampling is slower than gradient descent at maximising, but it still converges exponentially. What is the approximation of \cref{eq:xf} in this instance?
-
-WHCOMMENT: Is it worth hiding all these big results in the appendix -- it's not that long, and I think readers must read it to pace themselves through the maximum arguments?
-
-WHCOMMENT: $P(\log\mathcal{L})$ for the dead points?
-
-WHCOMMENT: maxmimum $(n)$ iteration notation?
-
-WHCOMMENT: \cref{fig:last_live_point} move legend.
 
 \bibliographystyle{mnras}
 \bibliography{references}
