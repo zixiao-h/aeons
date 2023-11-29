@@ -119,7 +119,7 @@ The bulk of the posterior lies within a prior volume ${X = e^{-\DKL}}$, which is
 \begin{equation}
     \langle\log X_i\rangle = -\sum_{k=1}^i \frac{1}{n_k}, \quad \mathrm{Var}(\log X_i) = \sum_{k=1}^i \frac{1}{n_k^2}.
 \end{equation}
-A constant step size in $\log X$ corresponds to a geometrically constant measure for the dead points, which is exactly needed to overcome the curse of dimensionality.
+A steady step size in $\log X$ corresponds to a geometrically constant measure for the dead points, which is exactly needed to overcome the curse of dimensionality.
 \begin{figure*}
 \begin{center}
     \includegraphics{figures/dead_measure_live.pdf}
@@ -169,13 +169,13 @@ i.e. $2(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}) \sim \chi^2_{d}$, with mea
 \end{equation}
 Given the prior is uniform $X\sim U(0,1)$, the KL divergence in the $\sigma^d \ll 1$ limit is:
 \begin{equation}
-\mathcal{D}_\mathrm{KL} = \frac{d}{2}\log 2 \Gamma(1+\tfrac{d}{2})^{2/d} \sigma^2
+\mathcal{D}_\mathrm{KL} = -\frac{d}{2}\log 2 \Gamma(1+\tfrac{d}{2})^{2/d} \sigma^2
 \end{equation}
 
 
 One can also derive the individual distributions for the live and dead points in log-likelihood. Note that this is merely the distribution of the \textit{values} of the points, without their nested sampling weights. The dead distribution is
 \begin{equation}
-    P(\log\Like) = \frac{\mathrm{d} \log X}{\mathrm{d} \log\Like} P(\log X) \propto \frac{dn}{2(\logLmax - \log\Like)},
+    P(\log\Like) = \frac{\mathrm{d} \log X}{\mathrm{d} \log\Like} P(\log X) \propto \frac{d\:n_i}{2(\logLmax - \log\Like)},
 \end{equation}
 since the log-densities of the dead point prior volumes are proportional to the live point number at any given iteration. Meanwhile, the live points are uniformly distributed, and so have the distribution 
 \begin{multline}
@@ -185,7 +185,7 @@ since the log-densities of the dead point prior volumes are proportional to the 
 \end{multline}
 \cref{fig:logL_distribution} shows the distinction between the distributions of the live and dead point values, as well as the posterior. 
 \par
-How much further do the live points penetrate in log-likelihood? We seek the distribution for the maximum likelihood of the live points, $\log\Like_{(n_i)}^{\mathrm{live}}$, where we have used the notation of order statistics to denote $x_{(n)}$ as the maximum of $n$ points.  For convenience, we will normalise the likelihoods as
+How much further do the live points penetrate in log-likelihood? We seek the distribution for the maximum likelihood of the live points, $\log\Like_{(n_i)}^{\mathrm{live}}$, where we have used the notation of order statistics to denote $x_{(k)}$ as the maximum of $k$ points.  For convenience, we will normalise the likelihoods as
 \begin{equation}
     y = \frac{\log\mathcal{L}-\log\mathcal{L}_i}{\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}_i}
     \label{eq:normalised_likelihood}
@@ -207,14 +207,14 @@ which may be roughly summarised as
      \pm \left( \frac{\Gamma(1+n_i)\Gamma(1+\frac{4}{d})}{\Gamma(1+\frac{4}{d}+n_i)} - \frac{\Gamma(1+\frac{2}{d})^2 \Gamma(1+n_i)^2}{\Gamma(1+\frac{2}{d}+n_i)^2}\right)^{\frac{1}{2}},
     \label{eq:ymax}
 \end{multline}
-or in the large $d$, $n$ limit
+or in the large $d$, $n_i$ limit
 \begin{align}
-    \lim_{d\to\infty} y_{(n_i)}^\mathrm{live} &\sim \frac{2H_n}{d} \pm \left(\frac{2(\pi^2 - 6\Psi^{(1)}(1+n))}{3d^2}\right)^{\frac{1}{2}},
+    \lim_{d\to\infty} y_{(n_i)}^\mathrm{live} &\sim \frac{2H_{n_i}}{d} \pm \left(\frac{2(\pi^2 - 6\Psi^{(1)}(1+n_i))}{3d^2}\right)^{\frac{1}{2}},
     \label{eq:ymaxd}\\
-    \lim_{d,n\to\infty} y_{(n_i)}^\mathrm{live} &\sim \frac{2\log n}{d} \pm \sqrt{\frac{2}{3}}\frac{\pi}{d},
+    \lim_{d,n_i\to\infty} y_{(n_i)}^\mathrm{live} &\sim \frac{2\log n_i}{d} \pm \sqrt{\frac{2}{3}}\frac{\pi}{d},
     \label{eq:ymaxdn}
 \end{align}
-where $\psi^{(1)}$ is the trigamma function and $H_n$ is the $n$th harmonic number. This is a very small fraction in high dimensions, showing that until the end the live points are far from the posterior bulk. 
+where $\psi^{(1)}$ is the trigamma function and $H_{n_i}$ is the $n_i$th harmonic number. This is a very small fraction in high dimensions, showing that until the end the live points are far from the posterior bulk. 
 \par
 Alternatively, the same result arrives intuitively from the fact that at each step, $y$ increases by  
 \begin{equation}\label{eq:dy}
@@ -257,14 +257,14 @@ In the event that we retain $\epsilon$, we replace $\frac{d}{2e}\to \frac{d}{2e}
 Putting this together, taking $\mathcal{L}_i$ in \eqref{eq:normalised_likelihood} to be $\mathcal{L}_\mathrm{f}$ and combining this with \eqref{eq:ymaxdn}, we find
 \begin{equation}
     \boxed{
-        \log{\mathcal{L}}_\mathrm{max}^\mathrm{live} \approx \log\mathcal{L}_\mathrm{max} - \frac{d}{2e} + \frac{\log n}{e} \pm \frac{\pi}{\sqrt{6}e}
+        \log{\mathcal{L}}_\mathrm{max}^\mathrm{live} \approx \log\mathcal{L}_\mathrm{max} - \frac{d}{2e} + \frac{\log n_i}{e} \pm \frac{\pi}{\sqrt{6}e}
     },
 \end{equation}
-showing that in general nested sampling will finish at a contour $d/2e$ away from the maximum log-likelihood. The final set of $n$ live points gets you $\log n/e$ closer, with a chance of getting $\sim\pi/\sqrt{6}e=0.472$ closer still by statistical fluctuation. 
+showing that in general nested sampling will finish at a contour $d/2e$ away from the maximum log-likelihood. The final set of $n_i$ live points gets you $\log n_i/e$ closer, with a chance of getting $\sim\pi/\sqrt{6}e=0.472$ closer still by statistical fluctuation. 
 \par
-Making the termination criterion stricter therefore has limited returns in high-dimensions, if it is ultimately still based on the remaining evidence. However, nested sampling still shrinks around the maximum exponentially, so provided a good termination criterion is chosen, it will get there in reasonable time. 
+Making the traditional termination criterion stricter therefore has limited returns in high-dimensions, if it is ultimately still based on the remaining evidence. However, nested sampling still shrinks around the maximum exponentially, so provided a good alternative termination criterion is chosen, it will get there in reasonable time. 
 
-To quantify this statement, consider the number of iterations required to get from the posterior bulk to the true maximum, which we will now calculate. At the posterior, we have roughly speaking
+To quantify this statement, consider the number of iterations $\Delta i$ required to get from the posterior bulk to the true maximum, which we will now calculate. At the posterior, we have roughly speaking
 \begin{equation}
     (\log X, \log\Like) = (-\DKL, \logLmax - d/2).
 \end{equation}
@@ -276,7 +276,7 @@ which corresponds to an additional
 \begin{equation}
     \Delta i = \frac{nd}{2} \left(\log \frac{d}{2} - \log \delta\right)
 \end{equation}
-iterations after the bulk is reached. One would therefore expect a general distribution to take $\mathcal{O}(\tfrac{n d }{2}\log \tfrac{d}{2})$ iterations to get from the usual nested sampling stopping point to within an $e$-fold of the maximum, which can serve as a sanity check for the maximisation procedure. 
+iterations after the bulk is reached, where $n$ is the harmonic mean of the number of live points. One would therefore expect a general distribution to take $\mathcal{O}(\tfrac{n d }{2}\log \tfrac{d}{2})$ iterations to get from the usual nested sampling stopping point to within an $e$-fold of the maximum. A rule-of-thumb termination criterion could therefore be to run for at least $\tfrac{nd}{2}\log\tfrac{d}{2}$ iterations after the posterior is reached.
 \par
 A summary of the distances between the notable points at the end of a run is shown in \cref{fig:logL_distribution}.
 
@@ -387,7 +387,7 @@ As described in \citet{supernest} and further explored in the talk and upcoming 
 \begin{equation}
     T \propto \langle \tfrac{1}{\nlive} \rangle^{-1} \times \langle \mathcal{T}\{ \Like(\theta) \} \rangle \times \langle f_\mathrm{sampler} \rangle \times \DKL.
 \end{equation}
-The first term is the harmonic mean of the number of live points $\sim\mathcal{O}(n)$, The second term is the average time per likelihood evaluation. The third is the average number of evaluations required to replace a dead point with a live point at higher likelihood, which is given by the implementation and usually does not vary in orders of magnitude. 
+The first term is the harmonic mean of the number of live points $\sim\mathcal{O}(n_i)$, The second term is the average time per likelihood evaluation. The third is the average number of evaluations required to replace a dead point with a live point at higher likelihood, which is given by the implementation and usually does not vary in orders of magnitude. 
 The final term is the Kullback-Liebler divergence~\cref{eq:DKL}, the compression factor required to get from the prior to the posterior. This term is generally outside of user control, in most cases \textit{a priori} unknown, and of principle interest in this section.
 
 \subsection{The termination prior volume}
