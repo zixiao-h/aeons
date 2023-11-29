@@ -39,7 +39,7 @@ $^{2}$Kavli Institute for Cosmology, Madingley Road, Cambridge, CB3 0HA, UK
 
 
 \begin{abstract}
-    This paper presents analytic results on the anatomy of nested sampling, from which a technique is developed to estimate the run-time of the algorithm that works for any nested sampling implementation. We test these methods on both toy models and true cosmological nested sampling runs. The method gives an order-of-magnitude prediction of the end point at all times, forecasting the true endpoint within standard error generally around the halfway point.  
+    This paper presents analytic results on the anatomy of nested sampling, from which a technique is developed to estimate the run-time of the algorithm that works for any nested sampling implementation. We test these methods on both toy models and true cosmological nested sampling runs. The method gives an order-of-magnitude prediction of the end point at all times, forecasting the true endpoint within standard error around the halfway point.  
 \end{abstract}
 
 \begin{keywords}
@@ -167,6 +167,12 @@ i.e. $2(\log\mathcal{L}_\mathrm{max}-\log\mathcal{L}) \sim \chi^2_{d}$, with mea
 \begin{equation}
     \langle\log\mathcal{L}\rangle_\mathcal{P} = \log\mathcal{L}_\mathrm{max} - \frac{d}{2},  \quad \mathrm{Var}(\log\mathcal{L})_\mathcal{P} = \frac{d}{2}.
 \end{equation}
+Given the prior is uniform $X\sim U(0,1)$, the KL divergence in the $\sigma^d \ll 1$ limit is:
+\begin{equation}
+\mathcal{D}_\mathrm{KL} = \frac{d}{2}\log 2 \Gamma(1+\tfrac{d}{2})^{2/d} \sigma^2
+\end{equation}
+
+
 One can also derive the individual distributions for the live and dead points in log-likelihood. Note that this is merely the distribution of the \textit{values} of the points, without their nested sampling weights. The dead distribution is
 \begin{equation}
     P(\log\Like) = \frac{\mathrm{d} \log X}{\mathrm{d} \log\Like} P(\log X) \propto \frac{dn}{2(\logLmax - \log\Like)},
@@ -246,7 +252,7 @@ We thus have an expression relating $\mathcal{L}_\mathrm{f}$ at termination to t
 \begin{equation}
     \lim_{d\to\infty} \log\mathcal{L}_\mathrm{f} \approx \log\mathcal{L}_\mathrm{max} - \frac{d}{2e}.
 \end{equation}
-In the event that we keep $\epsilon$ in, we replace $\frac{d}{2e}\to \frac{d}{2e}\epsilon^{2/d}$, so we can of course battle the $\frac{d}{2e}$ term, but this becomes exponentially difficult in high dimensions.
+In the event that we retain $\epsilon$, we replace $\frac{d}{2e}\to \frac{d}{2e}\epsilon^{2/d}$, allowing one to battle the $\frac{d}{2e}$ term exponentially as dimensions increase.
 \par
 Putting this together, taking $\mathcal{L}_i$ in \eqref{eq:normalised_likelihood} to be $\mathcal{L}_\mathrm{f}$ and combining this with \eqref{eq:ymaxdn}, we find
 \begin{equation}
@@ -256,7 +262,9 @@ Putting this together, taking $\mathcal{L}_i$ in \eqref{eq:normalised_likelihood
 \end{equation}
 showing that in general nested sampling will finish at a contour $d/2e$ away from the maximum log-likelihood. The final set of $n$ live points gets you $\log n/e$ closer, with a chance of getting $\sim\pi/\sqrt{6}e=0.472$ closer still by statistical fluctuation. 
 \par
-Making the termination criterion stricter therefore has limited returns in high-dimensions, if it is ultimately still based on the remaining evidence. However, nested sampling still shrinks around the maximum exponentially, so provided a good termination criterion is chosen, it will get there in reasonable time. What we are really interested in is the number of iterations required to get from the posterior bulk to the true maximum, which we will now calculate. At the posterior, we have roughly speaking
+Making the termination criterion stricter therefore has limited returns in high-dimensions, if it is ultimately still based on the remaining evidence. However, nested sampling still shrinks around the maximum exponentially, so provided a good termination criterion is chosen, it will get there in reasonable time. 
+
+To quantify this statement, consider the number of iterations required to get from the posterior bulk to the true maximum, which we will now calculate. At the posterior, we have roughly speaking
 \begin{equation}
     (\log X, \log\Like) = (-\DKL, \logLmax - d/2).
 \end{equation}
@@ -266,9 +274,9 @@ The prior volume $\log X_\delta$ at which the likelihood is within $\delta$ of t
 \end{equation}
 which corresponds to an additional
 \begin{equation}
-    \Delta i = \frac{d}{2} \left(\log \frac{d}{2} - \log \delta\right)
+    \Delta i = \frac{nd}{2} \left(\log \frac{d}{2} - \log \delta\right)
 \end{equation}
-iterations after the bulk is reached. One would therefore expect a general distribution to take $\mathcal{O}(d \log d)$ iterations to get from the usual nested sampling stopping point to within an e-fold of the maximum, which can serve as a sanity check for the maximisation procedure. 
+iterations after the bulk is reached. One would therefore expect a general distribution to take $\mathcal{O}(\tfrac{n d }{2}\log \tfrac{d}{2})$ iterations to get from the usual nested sampling stopping point to within an $e$-fold of the maximum, which can serve as a sanity check for the maximisation procedure. 
 \par
 A summary of the distances between the notable points at the end of a run is shown in \cref{fig:logL_distribution}.
 
