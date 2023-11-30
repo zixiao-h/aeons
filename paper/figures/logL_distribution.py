@@ -7,7 +7,7 @@ figsettings()
 fig, ax = plt.subplots()
 
 logLmax = 0
-d = 30
+d = 70
 n = 1000
 avlogL = logLmax-d/2
 
@@ -45,7 +45,7 @@ ax.axvline(logLmax, color='k', linestyle=':', lw=1)
 ax.plot([avlogL, logLmax], [l1,l1], 'k-', lw=.5)
 ax.annotate(r'$\frac{d}{2}$', ((avlogL+logLmax)/2,l1+pad_text), ha='center', va='bottom', fontsize=8)
 
-l2 = 0.7
+l2 = 0.68
 ax.plot([avlogL-np.sqrt(d/2), avlogL+np.sqrt(d/2)], [l2, l2], 'k-', lw=.5)
 ax.annotate(r'$\pm\sqrt{\frac{d}{2}}$', (avlogL+0.3,l2+pad_text), ha='left', va='bottom', fontsize=8)
 
@@ -61,24 +61,29 @@ l5 = 0.75
 ax.plot([logLs, logLmaxlive], [l5, l5], 'k-', lw=.5)
 ax.annotate(r'$\frac{\log n}{e}$', ((logLs+logLmaxlive)/2,l5+pad_text), ha='center', va='bottom', fontsize=8)
 
-ax.annotate("Iterations", xytext=(-28, 0.5), xy=(-23, 0.52), arrowprops=dict(arrowstyle="->"), fontsize=8)
+ax.annotate("Iterations", xytext=(-55, 0.5), xy=(-48, 0.52), arrowprops=dict(arrowstyle="->"), fontsize=8)
+
 
 ax.set_xticks([avlogL, 
                logLs, 
                logLmaxlive,
                logLmax])
 ax.set_xticklabels([r'$\langle\log\mathcal{L}\rangle_\mathcal{P}$',
-                    r'$\log\mathcal{L}_i$',
+                    r'$\log\mathcal{L}_f$',
                     r'$\log\mathcal{L}_\mathrm{max}^\mathrm{live}$',
                     r'$\log\mathcal{L}_\mathrm{max}$'],
                     fontsize=8)
+ticks = ax.get_xticklabels()
+ticks[1].set_rotation(25)
+ticks[2].set_rotation(25)
 
 ax.set_yticks([])
 ax.legend(loc='upper left', fontsize=8)
-ax.set_ylim([0,1.4])
+ax.set_ylim([0, 1.4])
 ax.margins(x=0)
 
 fig.set_size_inches(8, 3)
 # fig.tight_layout()
 # fig.autofmt_xdate(rotation=25)
 fig.savefig('logL_distribution.pdf', pad_inches=0, bbox_inches='tight')
+

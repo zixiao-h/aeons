@@ -12,7 +12,7 @@
 
 <!-- WHCOMMENT: maxmimum $(n)$ iteration notation? -->
 
-WHCOMMENT: \cref{fig:last_live_point} move legend.
+<!-- WHCOMMENT: \cref{fig:last_live_point} move legend. -->
 
 ## Other to-dos
 Check rendering of document before final submission.

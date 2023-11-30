@@ -41,7 +41,7 @@ ax.axvline(-ndead/nlive, color='deepskyblue', lw=.5, ls='--')
 # Arrows showing log n + gamma
 l = 0.32
 pad_text = 0.05
-ax.annotate(r'$\log n+\gamma$', ((-ndead/nlive+ ElogXlivemin)/2 - 3,l+pad_text), ha='center', va='bottom', fontsize=8)
+ax.annotate(r'$-\log n_i-\gamma$', ((-ndead/nlive+ ElogXlivemin)/2 - 3,l+pad_text), ha='center', va='bottom', fontsize=8)
 arrow_start = (-ndead/nlive, l)
 arrow_end = (ElogXlivemin, l)
 arrow = patches.FancyArrowPatch(arrow_start, arrow_end, arrowstyle='->', mutation_scale=5)
