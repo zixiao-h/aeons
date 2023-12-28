@@ -1,24 +1,17 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from aeons.utils import *
-from aeons.regress import *
-from aeons.endpoint import *
-from aeons.plotting import *
-from aeons.beta import *
+from util import read_from_txt, figsettings, plot_std
 figsettings()
 
 fig, axs = plt.subplots(1, 2, figsize=(3.5, 1.3))
 
-name, samples = get_samples('gauss_32')
-iterations, logbetas_grad, logbetas_logL, logbetas_mean, logbetas_std = read_from_txt(f'{data_dir}/logbetas/{name}.txt')
-logXs = samples.logX().iloc[iterations]
+iterations, logbetas_grad, logbetas_logL, logbetas_mean, logbetas_std = read_from_txt('data/logbetas/gauss_32.txt')
+logXs = read_from_txt('data/logXs/gauss_32.txt')[0][iterations.astype(int)]
 plot_std(-logXs, logbetas_mean, logbetas_std, label=f'Bayesian', ax=axs[0], color='red')
 axs[0].plot(-logXs, logbetas_logL, color='orange', label='Canonical')
 axs[0].plot(-logXs, logbetas_grad, color='black', lw=2, label='Microcanonical')
 
-name, samples = get_samples('slab_spike')
-iterations, logbetas_grad, logbetas_logL, logbetas_mean, logbetas_std = read_from_txt(f'{data_dir}/logbetas/{name}.txt')
-logXs = samples.logX().iloc[iterations]
+iterations, logbetas_grad, logbetas_logL, logbetas_mean, logbetas_std = read_from_txt(f'data/logbetas/slab_spike.txt')
+logXs = read_from_txt('data/logXs/slab_spike.txt')[0][iterations.astype(int)]
 plot_std(-logXs, logbetas_mean, logbetas_std, label=f'Bayesian', ax=axs[1], color='red')
 axs[1].plot(-logXs, logbetas_logL, color='orange', label='Canonical')
 axs[1].plot(-logXs, logbetas_grad, color='black', lw=2, label='Microcanonical')

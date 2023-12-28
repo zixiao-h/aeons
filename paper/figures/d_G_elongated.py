@@ -1,13 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from aeons.utils import *
-from aeons.plotting import *
-figsettings()
 from matplotlib.gridspec import GridSpec
+from aeons.utils import points_at_iteration
+from util import plot_quantiles, read_from_txt, figsettings
+figsettings()
 
-name, samples = get_samples('correlated_6d', reduced=False)
-iterations, *d_Gs = read_from_txt(f'{data_dir}/d_Gs/post/{name}.txt')
-logXs = samples.logX().iloc[iterations]
+iterations, *d_Gs = read_from_txt(f'data/d_Gs/correlated_6d.txt')
+logX_all = read_from_txt(f'data/logXs/correlated_6d.txt')[0]
+logXs = logX_all[iterations.astype(int)]
 d_Gs = np.array(d_Gs)
 
 fig = plt.figure(figsize=(3.5, 3))
@@ -19,9 +19,9 @@ ax4 = fig.add_subplot(gs[1, :], zorder=0)
 axs = [ax1, ax2, ax3, ax4]
 
 logXstars = [-0.5, -8, -30]
-logX = samples.logX()
 # Find index of logX closest to logXstar
-ndeads = [np.argmin(np.abs(logX - logXstar)) for logXstar in logXstars]
+ndeads = [np.argmin(np.abs(logX_all - logXstar)) for logXstar in logXstars]
+logL, logLbirth = read_from_txt(f'data/logLs/correlated_6d.txt')
 
 for i, ndead in enumerate(ndeads):
     ax = axs[i]
