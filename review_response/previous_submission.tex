@@ -70,7 +70,7 @@ ndead      =  18018
 nposterior =  18018
 nequals    =  249
 nlike      =  4159049
-<nlike>    =  491.04 (9.82 per slice)
+<nlike>    =  41.04 (9.82 per slice)
 log(Z)     =  -12.55 +/- 0.27
 \end{Verbatim}
 \caption{Output from \textsc{PolyChord} for a typical nested sampling run. The predicted endpoint, shown in red, is calculated using the method described in this paper.}
@@ -153,7 +153,7 @@ The result is consistent with that in \citet{statmech}, which states that a spik
 \end{figure*}
 
 \subsection{Log-likelihood}\label{sec:logL}
-We now consider the distribution of the samples in log-likelihood. To get an insight into the analytics, we will examine the case of the isotropic, $d$-dimensional multivariate Gaussian likelihood with maximum point $\logLmax$ and length scale $\sigma$, situated in a uniform unit prior:
+We now consider the distribution of the samples in log-likelihood. To get an insight into the analytics, we will examine the case of the $d$-dimensional multivariate Gaussian likelihood with maximum point $\logLmax$ and length scale $\sigma$, situated in a uniform unit prior:
 \begin{equation}\label{eq:logL_x}
     \log\Like = \logLmax - \frac{|\bm{x}|^{2}}{2\sigma^{2}}, \quad \bm{x} \in \mathbb{R}^{d}.
 \end{equation}
@@ -285,7 +285,7 @@ which corresponds to an additional
 \end{equation}
 iterations after the bulk is reached, where $n$ is the harmonic mean of the number of live points. One would therefore expect a general distribution to take a similar order of magnitude of steps, that is $\mathcal{O}(\tfrac{n d }{2}\log \tfrac{d}{2})$ iterations to get from the usual nested sampling stopping point to within an $e$-fold of the maximum. A rule-of-thumb termination criterion could therefore be to run for at least $\tfrac{nd}{2}\log\tfrac{d}{2}$ iterations after the posterior is reached.
 \par
-We can also compare this endpoint with the termination condition based on $\epsilon$. From \cref{eq:Xf_approx}, for any $d$, $n$ we have
+We can also put compare this endpoint with the termination condition based on $\epsilon$. From \cref{eq:Xf_approx}, for any $d$, $n$ we have
 \begin{equation}
     \log X_\mathrm{f} \approx \frac{d}{2}\log 2\sigma^2 + \log\epsilon + \log\Gamma\left(1+\frac{d}{2}\right),
 \end{equation}
@@ -362,7 +362,7 @@ What we would really like is the distribution of $\beta$ at the present iteratio
 As with all Bayesian analyses, the distribution of $\beta$ is fixed up to a prior, which we choose to be uniform in $\beta$. The obtained temperatures are consistent with the previous two choices, which may seem oddly coincidental. In fact, closer inspection reveals that large values of $P(\beta \mid \log X_i)$ are the temperatures with the largest values of the posterior at the present $\log X_i$, normalised by the corresponding evidence. Thus the Bayesian temperature uses the same idea as the microcanonical one (which maximises the posterior), except here the spread in result is accounted for.
 
 \subsubsection*{Comparisons}
-\cref{fig:beta_posteriors} shows the posterior distribution as a function of $\log X$ for a 32-d isotropic Gaussian when set to the above four temperatures, as known at a given iteration roughly 30\% through a run. Lower prior volumes are to the right, and 25 samples are taken from the prior volume distribution to capture the nested sampling uncertainties. When $\beta = 1$, the untransformed posterior is concentrated at the single point with the highest likelihood. This is no longer the case when $\beta$ is set to any of the other values, causing the posterior to have non-vanishing variance. The termination temperature can be seen to transform the posterior to have exactly $\epsilon$ of the total evidence to the right hand side of the current iteration (dotted black line). $\beta_\mathrm{M}$ makes the peak of the posterior with respect to $\log X$ coincide with the current iteration, and $\beta_\mathrm{C}$ produces a very similar result from its own criteria. 25 samples are taken from the distribution of the Bayesian temperature and the resultant posterior plotted for each, displaying a much broader range of uncertainty compared to the other plots.
+\cref{fig:beta_posteriors} shows the posterior distribution as a function of $\log X$ for a 32-d spherical Gaussian when set to the above four temperatures, as known at a given iteration roughly 30\% through a run. Lower prior volumes are to the right, and 25 samples are taken from the prior volume distribution to capture the nested sampling uncertainties. When $\beta = 1$, the untransformed posterior is concentrated at the single point with the highest likelihood. This is no longer the case when $\beta$ is set to any of the other values, causing the posterior to have non-vanishing variance. The termination temperature can be seen to transform the posterior to have exactly $\epsilon$ of the total evidence to the right hand side of the current iteration (dotted black line). $\beta_\mathrm{M}$ makes the peak of the posterior with respect to $\log X$ coincide with the current iteration, and $\beta_\mathrm{C}$ produces a very similar result from its own criteria. 25 samples are taken from the distribution of the Bayesian temperature and the resultant posterior plotted for each, displaying a much broader range of uncertainty compared to the other plots.
 \par
 \cref{fig:beta_plots} then shows how these four temperatures evolve during the run (i.e. as a function of $\log X$) for two cases: one containing a classic slab-spike phase transition and one without. The behaviour of the former case is especially useful, because it is well-known to trouble temperature-based samplers. 
 \par
@@ -371,7 +371,7 @@ In the case of a single phase all temperatures are consistent, with the exceptio
 \begin{center}
     \includegraphics{figures/beta_posteriors.pdf}
 \end{center}
-\caption{The posterior distribution at an intermediate point 30\% of the way through a nested sampling run for a 32$d$ isotropic Gaussian, with the likelihood transformed from  $\Like \to \Like^{\beta}$ for several different choices of $\beta$. The untransformed posterior has all its weight at a single point. The other $\beta$ produce relatively similar transformations with finite posterior variance. Notably, the termination temperature is dependent on a manual choice of $\epsilon$, and the Bayesian temperature includes uncertainty in $\beta$ itself.}
+\caption{The posterior distribution at an intermediate point 30\% of the way through a nested sampling run for a 32$d$ spherical Gaussian, with the likelihood transformed from  $\Like \to \Like^{\beta}$ for several different choices of $\beta$. The untransformed posterior has all its weight at a single point. The other $\beta$ produce relatively similar transformations with finite posterior variance. Notably, the termination temperature is dependent on a manual choice of $\epsilon$, and the Bayesian temperature includes uncertainty in $\beta$ itself.}
 \label{fig:beta_posteriors}
 \end{figure*}
 
@@ -379,7 +379,7 @@ In the case of a single phase all temperatures are consistent, with the exceptio
 \begin{center}
     \includegraphics{figures/beta_plots.pdf}
 \end{center}
-\caption{Inferred temperatures using the termination ($\epsilon = 10^{-3}$), microcanonical, canonical and Bayesian definitions. The shaded region shows the $1-2\sigma$ uncertainties for the Bayesian temperature. $\beta_\epsilon$ is offset from the others, but can be shifted up and down depending on the chosen $\epsilon$. The other $\beta$ are all consistent in a single phase, but differ during a phase transition.}
+\caption{Inferred temperatures using the termination ($\epsilon = 10^{-3}$), microcanonical, canonical and Bayesian definitions. The shaded region shows the $1-2\sigma$ uncertainties for the Bayesian temperature. $\beta_\epsilon$ is offset from the others, but can be shifted up and down depending on the chosen $\epsilon$. The other $\beta$ are all are consistent in a single phase, but differ during a phase transition.}
 \label{fig:beta_plots}
 \end{figure}
 Despite the above theoretical justifications, one should remember the original motivation for introducing $\beta$ was to utilise the extra degree of freedom it provides, to transform the likelihood without losing information. As we will see in \cref{sec:choosing_the_best_temperature}, one can choose the exact definition depending on what is useful for the problem at hand.
@@ -396,14 +396,14 @@ As is discussed in \citet{Handley_2019}, $\dG$ holds valuable information about 
 \end{equation}
 Unfortunately, calculating this quantity in the middle of a run tends to return zero. That naturally follows from the results of \cref{sec:logL}, which shows that an intermediate set of samples typically have all their weight concentrated at a single point, the maximum live point, and a single point has vanishing variance. This behaviour continues practically until the run is close to termination. Re-weighting the likelihood by re-setting the temperature, however, leads this to no longer be the case. As shown in \cref{fig:beta_posteriors}, the posterior variance (and hence dimensionality) is zero at $\beta = 1$ but nonzero for the various other temperatures presented. 
 \par
-We find that the $\dG$ calculated from these transformed posteriors are exactly the Bayesian model dimensionalities of the \textit{true} posterior. \cref{fig:d_G_gaussians} demonstrates this using the microcanonical and Bayesian temperatures, on several isotropic Gaussians for which the true value of $\dG$ is known; except for the earliest iterations, the right value is found to within standard error for all the likelihoods. The Bayesian temperature has slightly larger error bounds, as a more cautious estimate, but otherwise the estimates are consistent. 
+We find that the $\dG$ calculated from these transformed posteriors are exactly the Bayesian model dimensionalities of the \textit{true} posterior. \cref{fig:d_G_gaussians} demonstrates this using the microcanonical and Bayesian temperatures, on several spherical Gaussians for which the true value of $\dG$ is known; except for the earliest iterations, the right value is found to within standard error for all the likelhoods. The Bayesian temperature has slightly larger error bounds, as a more cautious estimate, but otherwise the estimates are consistent. 
 \par
-This provides a crucial piece of information, allowing us to access the Gaussian dimensionality of the true posterior before the run is complete. Before we discuss how this can be used to aid endpoint estimation, we consider how the prior can affect the value of $\dG$ mid-run.  
+This provides a crucial piece of information, allowing us to access the Gaussian dimensionality of the true posterior before the run is complete. Before we discuss how this is can be used to aid endpoint estimation, we consider how the prior can affect the value of $\dG$ mid-run.  
 \begin{figure*}
 \begin{center}
     \includegraphics{figures/d_G_gaussians.pdf}
 \end{center}
-\caption{Bayesian model dimensionalities estimated throughout a run for isotropic Gaussians of varying dimensions, which were not previously accessible before the end of a run because the posterior samples have vanishing variance. Calculating the value from the transformed likelihood $\Like \to \Like^{\beta}$, however, recovers the dimensionality of the final posterior before it is reached, which is shown in the above plots. Shading represents the $1-2\sigma$ uncertainties on the estimates $\hat{d}_\mathrm{G}$ of the true posterior dimensionality. Only the microcanonical and Bayesian temperatures are shown for clarity of comparison.}
+\caption{Bayesian model dimensionalities estimated throughout a run for spherical Gaussians of varying dimensions, which were not previously accessible before the end of a run because the posterior samples have vanishing variance. Calculating the value from the transformed likelihood $\Like \to \Like^{\beta}$, however, recovers the dimensionality of the final posterior before it is reached, which is shown in the above plots. Shading represents the $1-2\sigma$ uncertainties on the estimates $\hat{d}_\mathrm{G}$ of the true posterior dimensionality. Only the microcanonical and Bayesian temperatures are shown for clarity of comparison.}
 \label{fig:d_G_gaussians}
 \end{figure*}
 
@@ -417,7 +417,7 @@ Transformation to the hypercube makes it manifest that compared to the posterior
 \par
 Initially, the live point cloud is spread across the whole prior (\cref{fig:d_G_elongated_2D}, panel A). When it is time to find a point with a higher log-likelihood, it is much more likely to be in the $\theta_1$ direction because it is less well-constrained than $\theta_2$. The samples only compress in the  $\theta_1$ direction, and thus in this phase the live and dead points lie in a single-dimensional subspace of the full two-dimensional posterior, with $\dG = 1$ (\cref{fig:d_G_elongated_2D}, panel B). Eventually, the live point cloud converges around $\theta_1$ sufficiently so that it is just as likely to find a higher $\log\Like$ in either parameter direction. Only at this point does the point cloud shrink in both directions, lying in the full two-dimensional space of the posterior, with $d_G = 2$ (\cref{fig:d_G_elongated_2D}, panel C). 
 \par
-The key point is that in panel B, the live point cloud really only varies in one dimension, despite the true posterior having two constrained parameters. When compared to another $2d$ posterior which truly only has one constrained parameter, with the other being flat (\cref{fig:d_G_elongated_1D}), we find that at point B the samples look the same in all aspects. The consequence is that at point B, we fundamentally cannot know if there are more parameters `waiting' to be constrained, or if we have already found all the relevant directions. There are no clever inference tricks to get around it, in the same way that we cannot infer a `spike' from a slab and spike posterior when all the samples have yet to find the `spike'. Knowing the total number of parameters of the prior and likelihood to get the `parameter dimensionality' also isn't helpful, because the posterior dimensionality could be significantly different due to parameter degeneracies or non-Gaussian likelihoods.
+The key point is that in panel B, the live point cloud is actually one-dimensional. When comapred to a truly one-dimensional posterior (\cref{fig:d_G_elongated_1D}), at point B the samples look the same in all aspects. The consequence is that at point B, we fundamentally cannot know if there are more parameters `waiting' to be constrained, or if we have already found all the relevant directions. There are no clever inference tricks to get around it, in the same way that we cannot infer a `spike' from a slab and spike posterior when all the samples have yet to find the `spike'. Knowing the total number of parameters of the prior and likelihood to get the `parameter dimensionality' also isn't helpful, because the posterior dimensionality could be significantly different due to parameter degeneracies or non-Gaussian likelihoods.
 \par
 Therefore, unless the prior happens to be chosen to perfectly constrain each principal component of the posterior to the same degree, the prior choice will cause the nested samples to initially only occupy a subspace of the true posterior with a lower dimensionality, only eventually evolving to occupy the full space.
 \begin{figure*}
@@ -455,7 +455,7 @@ As described in \citet{supernest} and further explored in the talk and upcoming 
 \end{equation}
 The first term is the harmonic mean of the number of live points $\sim\mathcal{O}(n_i)$, which depends on the live point schedule chosen by the user. The second term is the average time per likelihood evaluation. The third is the average number of evaluations required to replace a dead point with a live point at higher likelihood, which is given by the implementation. The final term is the Kullback-Liebler divergence~\cref{eq:DKL}, the compression factor required to get from the prior to the posterior. This term is generally outside of user control, in most cases \textit{a priori} unknown, and of principal interest in this section.
 \par
-Our aim is therefore first to quantify the amount of compression required to reach the endpoint at approximately $\log X = -\DKL$, which provides an estimate of how far the sampler still needs to penetrate into the posterior. Once the required compression $\log X_\mathrm{f}$ is known, multiplying by the harmonic mean of the number of live points through the run gives the iteration count. Converting the number of nested sampling iterations to a run-time requires knowledge of how the sampling efficiency changes throughout the run, which we will not attempt to do because the variation is highly implementation-specific. 
+Our aim is therefore first to quantify the amount of compression required to reach the endpoint at approximately $\log X = -\DKL$, which provides an estimate of the how far the sampler still needs to penetrate into the posterior. Once the required compression $\log X_\mathrm{f}$ is known, multiplying by the harmonic mean of the number of live points through the run gives the iteration count. Converting the number of nested sampling iterations to a run-time requires knowledge of how the sampling efficiency changes throughout the run, which we will not attempt to do because the variation is highly implementation-specific. 
 \par
 On the final point: the iteration progress is roughly proportional to the runtime progress when the sampling efficiency does not vary in order of magnitude. When that is not the case, the estimate will still be useful if the variation is known \textit{a priori}. For example, ellipsoidal samplers such as \textsc{MultiNest} and the MLFriends algorithm in \textsc{UltraNest} reduce in efficiency near the posterior bulk, so an impatient user who does not wish to expend the extra exponential effort for the final few percent can confidently halt earlier if they know they are already near the termination point.
 
@@ -483,7 +483,7 @@ Once $X_\mathrm{f}$ is known, the corresponding iteration count depends on the l
 
 \subsection{How to extrapolate?}\label{sec:how_to_extrapolate}
 The critical ingredient here is the function $\phi$ used to fit the likelihood profile $\Like(X)$, which should be simple enough to make fitting possible mid-run, but ideally also flexible enough to avoid strong biases. 
-Previous work, such as the fitting procedure in the original Nelder-Mead simplex algorithm to estimate the Hessian \citep{nelder_mead}, and the BAMBI nested sampling paper \citep{Graff_2012}, suggest fast Gaussian approximations can be a good candidate for (online) modeling of likelihoods. The following method uses a similar approach, but unlike the previous schemes does not fit directly in parameter space.
+Previous work, such as the fitting procedure in the original Nelder-Mead simplex algorithm to estimate the Hessian \citep{nelder_mead}, and the BAMBI nested sampling paper \citep{Graff_2012}, suggest fast Gaussian approximations can be a good candidate for (online) modelling of likelihoods. The following method uses a similar approach, but unlike the previous schemes do not fit directly in parameter space.
 \par
 A key observation is that the Bayesian model dimensionality is the equivalent dimension of the posterior if it were actually Gaussian. Fitting a Gaussian of this dimension to the likelihood profile therefore makes a reasonable approximation to the true distribution, without explicitly assuming the form of the likelihood function. 
 \par
@@ -530,7 +530,7 @@ Thus far, we have not yet specified which temperature we should use to regulariz
 \subsection{Choosing the best temperature}\label{sec:choosing_the_best_temperature}
 We estimate the endpoint using the above procedure for three previously discussed test likelihoods, each in a unit hypercube prior:
 \begin{enumerate}[leftmargin=*]
-    \item Isotropic Gaussian; $\sigma = 10^{-3}$
+    \item Spherical Gaussian; $\sigma = 10^{-3}$
         \begin{equation}
         \log \Like = -\frac{|\bm{x}|^2}{2\sigma^2}, \quad \bm{x} \in \mathbb{R}^{32}
         \end{equation}
@@ -570,10 +570,10 @@ An alternative approach used in \textsc{Ultranest} \citep{ultranest} derives a p
 \begin{equation}\label{eq:integral_progress}
     \mathcal{Z}_\mathrm{rem} \approx \Like_\mathrm{max}^{\mathrm{live}} X_i.
 \end{equation}
-This has several shortcomings. First, run-time is proportional to compression rather than accumulation of the integral, since it takes just as long to traverse the width of the bulk as it does any other width. Second, because of the point-like nature of the posterior mid-run, the remaining integral approximated as such holds nearly all of the evidence, so the relative fraction of the accumulated and remaining evidence is almost zero for most of the run. Finally, approximation \cref{eq:integral_progress} is always an underestimate, because as previously found the maximum live point is generally nowhere near the true maximum. This approach can be useful in low dimensions when the live points are always near the maximum, but in general is less reliable.
+This has a several shortcomings. First, run-time is proportional to compression rather than accumulation of the integral, since it takes just as long to traverse the width of the bulk as it does any other width. Second, because of the point-like nature of the posterior mid-run, the remaining integral approximated as such holds nearly all of the evidence, so the relative fraction of the accumulated and remaining evidence is almost zero for most of the run. Finally, approximation \cref{eq:integral_progress} is always an underestimate, because as previously found the maximum live point is generally nowhere near the true maximum. This approach can be useful in low dimensions when the live points are always near the maximum, but in general is less reliable.
 
 \subsubsection{Extrapolating evidence increments}
-Seasoned watchers of nested sampling runs might be curious how the method compares to simply extrapolating the increments of evidence to roughly estimate when the evidence converges. At an intermediate stage of the run, the most recent outputs look something like that shown in the first two columns of the table in \cref{fig:inc_extrapolate} (which in this case was a real run for a isotropic Gaussian with $d = 16$, $\sigma = 0.01$). The right hand side of \cref{fig:inc_extrapolate} plots the gain in log-evidence at every 500 iterations, then extrapolates them with a linear and exponential profile. This is then used to calculate the point at which the gain is so small that the termination condition is met, shown separately for the linear and exponential extrapolations.
+Seasoned watchers of nested sampling runs might be curious how the method compares to simply extrapolating the increments of evidence to roughly estimate when the evidence converges. At an intermediate stage of the run, the most recent outputs look something like that shown in the first two columns of the table in \cref{fig:inc_extrapolate} (which in this case was a real run for a spherical Gaussian with $d = 16$, $\sigma = 0.01$). The right hand side of \cref{fig:inc_extrapolate} plots the gain in log-evidence at every 500 iterations, then extrapolates them with a linear and exponential profile. This is then used to calculate the point at which the gain is so small that the termination condition is met, shown separately for the linear and exponential extrapolations.
 \par
 Compared to the true endpoint (found by completing the run), the linear extrapolation is clearly an underestimate, since it fails to account for the long tail of the nonlinear profile. The increments are also not exactly exponential, since the exponential fit leads to a large over-prediction. The predicted endpoint over the course of a run, as shown in \cref{fig:inc_predictions}, shows the same result. One might expect an average to be more accurate, but this tends to be biased towards the exponential prediction, and there is no obvious choice of weighting that would fix this.
 \par
@@ -606,23 +606,23 @@ iteration & log Z  & $\Delta\log Z$   \\
 \end{figure}
 \begin{figure}
 \includegraphics{figures/inc_predictions.pdf}
-\caption{Endpoint predictions for a isotropic Gaussian, with $1-2\sigma$ uncertainties shaded. Extrapolating the evidence increments in a linear/exponential manner under/over-predicts the endpoint, both of which perform considerably worse than the method of extrapolating the likelihood.}
+\caption{Endpoint predictions for a spherical Gaussian, with $1-2\sigma$ uncertainties shaded. Extrapolating the evidence increments in a linear/exponential manner under/over-predicts the endpoint, both of which perform considerably worse than the method of extrapolating the likelihood.}
 \label{fig:inc_predictions}
 \end{figure}
 
 \section{Results}\label{sec:results}
 We now test the approach established in the previous section on a range of distributions, beginning by considering a series of toy examples to explore the capabilities and limitations of the method, before presenting results for real cosmological chains.
 \subsection{Toy examples}\label{sec:logXfs_toy}
-Throughout the toy examples we make use of the perfect nested sampling~\citep{Keeton_2011,2018BayAn..13..873H} framework implemented in \textsc{anesthetic}~\citep{anesthetic}.
-\subsubsection{Isotropic Gaussians}
-Predictions for isotropic Gaussians of various dimensions are shown in \cref{fig:logXfs_gaussian} as a benchmark for when fitting a Gaussian distribution is exact. In all endpoint prediction plots, the shading indicates the $1-2\sigma$ uncertainties. All were run with $\nlive = 500$ except for one $\nlive=2000$ for comparison, with each Gaussian having a width of $\sigma = 0.01$.. 
+Throughout the toy examples we make use the perfect nested sampling~\citep{Keeton_2011,2018BayAn..13..873H} framework implemented in \textsc{anesthetic}~\citep{anesthetic}.
+\subsubsection{Spherical Gaussians}
+Predictions for spherical Gaussians of various dimensions are shown in \cref{fig:logXfs_gaussian} as a benchmark for when fitting a Gaussian distribution is exact. In all endpoint prediction plots, the shading indicates the $1-2\sigma$ uncertainties. All were run with $\nlive = 500$ except for one $\nlive=2000$ for comparison, with each Gaussian having a width of $\sigma = 0.01$. The correct endpoint is recovered to within standard error at all points except the very beginning, when the parameters have hardly been constrained. 
 \par
-This case serves as a useful benchmark for the case where there are no correlations or length scale differences between the parameters, and it is reassuring that the correct endpoint is recovered to within standard error at all points except the very beginning, when the parameters have hardly been constrained. One can see from the $\log\Like-\log X$ plots in \cref{fig:logL_logX_plots} that the extrapolated likelihood is a good fit to the true likelihood, as expected from a isotropic Gaussian. We also note that as with nested sampling in general, increasing $\nlive$ improves the resolution and reliability of the inferences, as indicated by the middle two plots of \cref{fig:logXfs_gaussian}.
+One can see from the $\log\Like-\log X$ plots in \cref{fig:logL_logX_plots} that the extrapolated likelihood is a good fit to the true likelihood, as expected from a spherical Gaussian. We also note that as with nested sampling in general, increasing $\nlive$ improves the resolution and reliability of the inferences, as indicated by the middle two plots of \cref{fig:logXfs_gaussian}.
 \begin{figure*}
 \begin{center}
     \includegraphics{figures/logXfs_gaussian.pdf}
 \end{center}
-\caption{Endpoint predictions for a isotropic Gaussian run with $\nlive=500$ (except for the third plot from left). The true endpoints are shown in dotted red, while the estimates with their $1-2\sigma$ uncertainties are shaded in blue. Progress is measured in terms of the compression $-\log X$ along the x-axis, while the estimates on the y-axis are in terms of the predicted final compression $-\log \hat{X}_\mathrm{f}$. The correct endpoint is obtained for all but the earliest iterations, and the uncertainty is controlled by the number of live points, which can be seen from the two $d = 16$ plots.}
+\caption{Endpoint predictions for a spherical Gaussian run with $\nlive=500$ (except for the third plot from left). The true endpoints are shown in dotted red, while the estimates with their $1-2\sigma$ uncertainties are shaded in blue. Progress is measured in terms of the compression $-\log X$ along the x-axis, while the estimates on the y-axis are in terms of the predicted final compression $-\log \hat{X}_\mathrm{f}$. The correct endpoint is obtained for all but the earliest iterations, and the uncertainty is controlled by the number of live points, which can be seen from the two $d = 16$ plots.}
 \label{fig:logXfs_gaussian}
 \end{figure*}
 
@@ -658,7 +658,7 @@ which is important because it has strong correlations between the parameters whi
 \end{equation}
 which we test with $\gamma = 10^{-4}$ and $d = 8$. Results are shown in \cref{fig:logXfs_non_gaussian}. The Rosenbrock initially underestimates the endpoint, getting the right answer with around 5,000 iterations of 15,529 remaining, though the prediction at worst hovers at around 60-70\% of the actual run time. Prior effects contribute to the under-estimation in the same manner as all of the previous non-spherical likelihoods, but \cref{fig:logL_logX_plots} reveals that the relatively poor fit (but still reasonable) of a Gaussian to the Rosenbrock function also plays a role.
 \par
-The Cauchy also under-predicts at first, obtaining the correct endpoint within standard error by about halfway through its 39,236 iterations. The posterior here is spherical, so compression is isotropic and the prior affects all parameters equally. Because there are no associated under-estimates of the posterior dimensionality, the inaccuracies are solely due to the poor fit of a Gaussian to a Cauchy, which can be seen in the rightmost plot of \cref{fig:logL_logX_plots} as much more drastic than the other likelihoods; the Bayesian model dimensionality is itself less stable for Cauchy likelihoods. Nevertheless, the right order of magnitude is obtained at all times, so this remains sufficient for most use-cases. The Cauchy is also a pathological case, and the same problem does not in practice appear for more realistic examples, as we shall see in the next section.
+The Cauchy also under-predicts at first, obtaining the correct endpoint within standard error by about halfway through its 39,236 iterations. The posterior here is spherically symmetric, so compression is isotropic and the prior affects all parameters equally. Because there are no associated under-estimates of the posterior dimensionality, the inaccuracies are solely due to the poor fit of a Gaussian to a Cauchy, which can be seen in the rightmost plot of \cref{fig:logL_logX_plots} as much more drastic than the other likelihoods; the Bayesian model dimensionality is itself less stable for Cauchy likelihoods. Nevertheless, the right order of magnitude is obtained at all times, so this remains sufficient for most use-cases. The Cauchy is also a pathological case, and the same problem does not in practice appear for more realistic examples, as we shall see in the next section.
 \begin{figure*}
 \begin{center}
     \includegraphics{figures/logXfs_non_gaussian.pdf}
@@ -669,7 +669,7 @@ The Cauchy also under-predicts at first, obtaining the correct endpoint within s
 
 \begin{figure*}
 \includegraphics{figures/logL_logX_plots.pdf}
-\caption{Fitted extrapolations compared to the true likelihood for four different test likelihoods. The live points at 30\% through the run for each example are fitted to a Gaussian, extrapolated to the higher likelihoods that have not yet been explored, and compared to the ground truth. It is clear that truly Gaussian likelihoods are modeled well, while the model deteriorates with increasing non-Gaussianity (seen in the Rosenbrock and Cauchy likelihoods).}
+\caption{Fitted extrapolations compared to the true likelihood for four different test likelihoods. The live points at 30\% through the run for each example are fitted a to Gaussian, extrapolated to the higher likelihoods that have not yet explored, and compared to the ground truth. It is clear that truly Gaussian likelihoods are modelled well, while the model deteriorates with increasing non-Gaussianity (seen in the Rosenbrock and Cauchy likelihoods).}
 \label{fig:logL_logX_plots}
 \end{figure*}
 
@@ -705,4 +705,3 @@ WJH is supported by the Royal Society as a Royal Society University Research Fel
 
 \label{lastpage}
 \end{document}
-
