@@ -1,0 +1,56 @@
+import numpy as np
+from numpy import pi, log
+import pypolychord
+from pypolychord.settings import PolyChordSettings
+from pypolychord.priors import UniformPrior
+from scipy.special import logsumexp
+
+#| Define a four-dimensional spherical gaussian likelihood,
+#| width sigma=0.1, centered on the 0 with one derived parameter.
+#| The derived parameter is the squared radius
+
+
+nDims = 6
+nDerived = 0
+sigma0 = 0.04
+sigma1 = 0.02
+sigma2 = 0.01
+sigma3 = 0.005
+sigma4 = 0.002
+sigma5= 0.001
+
+settings = PolyChordSettings(nDims, nDerived)
+settings.nlive = 500
+settings.do_clustering = False
+settings.read_resume = False
+settings.precision_criterion = 1e-3
+settings.file_root = 'elongated_6D_close'
+
+
+def likelihood(theta):
+    """ Simple Gaussian Likelihood"""
+    sigmas = np.array([sigma0, sigma1, sigma2, sigma3, sigma4, sigma5])
+    invcov = np.diag(1/sigmas**2)
+    logL = -theta @ invcov @ theta.T
+    return logL, []
+
+#| Define a box uniform prior from -1 to 1
+
+def prior(hypercube):
+    """ Uniform prior from [-1,1]^D. """
+    return UniformPrior(-0.5, 0.5)(hypercube)
+
+#| Optional dumper function giving run-time read access to
+#| the live points, dead points, weights and evidences
+
+def dumper(live, dead, logweights, logZ, logZerr):
+    print(logZ)
+    print("Last dead point:", dead[-1])
+
+#| Initialise the settings
+
+
+
+#| Run PolyChord
+
+output = pypolychord.run_polychord(likelihood, nDims, nDerived, settings, prior, dumper)
