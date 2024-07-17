@@ -80,11 +80,14 @@ class EndModel:
             points = self.points(ndead)
             d_G = d_G_method(points, ndead, Nset)[0]
             from scipy.stats import gaussian_kde
-            kde = gaussian_kde(d_G)
+            if d_G.std() < 1e-16:
+                ds = [d_G[0]]
+                print('Warning: d_G is constant')
+            else:
+                ds = gaussian_kde(d_G).resample()
+                ds = ds[ds > 0]
             logL, X_mean, nk, logZdead = data(points)
             logXf_set = np.zeros(Nset)
-            ds = kde.resample()
-            ds = ds[ds > 0]
             for j in range(Nset):
                 X = generate_Xs(nk)
                 d = np.random.choice(ds)

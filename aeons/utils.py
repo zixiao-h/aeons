@@ -263,15 +263,11 @@ def get_beta(points, ndead):
 def get_dGs(get_beta, samples, iterations, Nset=10, **kwargs):
     """Get the dG of the samples at each iteration for a given function get_beta."""
     iterations = iterations.astype(int)
-    d_Gs = np.zeros(len(iterations))
-    d_Gs_std = np.zeros(len(iterations))
+    d_Gs = np.zeros((len(iterations), Nset))
     for i, iteration in enumerate(iterations):
         points = points_at_iteration(samples, iteration)
         beta = get_beta(points, iteration, **kwargs)
         points = points.set_beta(beta)
-        d_Gs_i = points.d_G(Nset)
-        d_Gs[i] = d_Gs_i.mean()
-        d_Gs_std[i] = d_Gs_i.std()
-        # Print progress bar
-        print('\r', f'Iteration {iteration} of {iterations[-1]}, {d_Gs[i]}', end='')
-    return d_Gs, d_Gs_std
+        d_Gs[i] = points.d_G(Nset)
+        print('\r', f'Iteration {iteration} of {iterations[-1]}', end='')
+    return d_Gs

@@ -46,6 +46,36 @@ def get_betas_logL(samples):
     f = interp1d(logL, beta)
     return f(samples.logL)
 
+def get_beta_end(points, ndead, epsilon=1e-3):
+    logX = points.logX()
+    logL = points.logL
+    # Check if already terminated
+    logw = logL + logX
+    logw = logw - logw.max()
+    def func(beta):
+        logw = beta * logL + logX
+        w = np.exp(logw - logw.max())
+        Zdead = np.sum(w[:ndead])
+        Zlive = np.sum(w[ndead:])
+        if (Zdead == 0):
+            return np.inf
+        return Zlive/Zdead - epsilon
+    
+    from scipy import optimize
+    from scipy.special import logsumexp
+    logZdead = logsumexp(logw[:ndead])
+    logZlive = logsumexp(logw[ndead:])
+    try:
+        if (logZlive - logZdead < np.log(epsilon)):
+            res = optimize.root_scalar(func, bracket=[1, 1e3])
+            return res.root
+        else:
+            res = optimize.root_scalar(func, bracket=[0, 1])
+            return res.root
+    except:
+        print("No beta found")
+        return 0
+
 ### d_G
 def get_d_G_grad(points, ndead, Nset=25):
     logbeta = get_logbeta_grad(points, ndead)
@@ -63,6 +93,11 @@ def get_d_G_post(points, ndead, Nset=25):
     betas_post = np.exp(np.random.normal(logbeta_mean, logbeta_std, Nset))
     d_G_post = points.d_G(beta=betas_post)
     return d_G_post.values, f"{len(betas_post)} samples"
+
+def get_d_G_epsilon(points, ndead, Nset=25):
+    beta = get_beta_end(points, ndead)
+    d_G = points.d_G(Nset, beta=beta)
+    return d_G.values, ""
 
 def get_d_G_prop(points, ndead):
     betas = np.logspace(-10, 0, 1000)
