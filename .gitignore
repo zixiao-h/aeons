@@ -11,3 +11,4 @@ klcdm/
 !paper/Figures/*.pdf
 !paper/*.pdf
 *.pkl
+chains/
