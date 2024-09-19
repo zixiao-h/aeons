@@ -1,14 +1,9 @@
-test_samples/
-*.png
 *.pickle
 __pycache__/
 .ipynb_checkpoints/
 *.pdf
-lcdm/
-klcdm/
 *.txt
 *.gz
-!paper/Figures/*.pdf
 !paper/*.pdf
 *.pkl
 chains/

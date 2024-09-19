@@ -22,7 +22,6 @@ def logXf_formula(theta, logZdead, Xi, epsilon=1e-3):
     loglive = loggamma(d/2) + np.log(gammainc(d/2, Xi**(2/d)/(2*sigma**2)) )
     logdead = logZdead - logLmax - (d/2)*np.log(2) - d*np.log(sigma) + np.log(2/d)
     logend = logsumexp([loglive, logdead]) + np.log(epsilon)
-    # if (gammainc(d/2, Xi**(2/d)/(2*sigma**2)) > 1 - epsilon):
     if logend > loggamma(d/2):
         return d/2 * np.log(2) + d*np.log(sigma) + loggamma(1 + d/2) + np.log(epsilon)
     xf_reg = gammaincinv(d/2, np.exp(logend - loggamma(d/2)))
