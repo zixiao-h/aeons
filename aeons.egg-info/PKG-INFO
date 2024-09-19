@@ -1,0 +1,22 @@
+Metadata-Version: 2.1
+Name: aeons
+Version: 0.0.1
+Summary: Approximating the endpoint of nested sampling
+Author-email: Zixiao Hu <zixiao.hu.09@gmail.com>
+Project-URL: Homepage, https://github.com/zixiao-h/aeons/tree/dev
+Project-URL: Issues, https://github.com/zixiao-h/aeons/tree/dev/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: anesthetic
+Provides-Extra: test
+Requires-Dist: pytest; extra == "test"
+
+# Approximating the end of nested sampling
+
+Predicting the runtime of nested sampling.

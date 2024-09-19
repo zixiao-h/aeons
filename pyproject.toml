@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aeons"
+version = "0.0.1"
+authors = [
+  { name="Zixiao Hu", email="zixiao.hu.09@gmail.com" },
+]
+description = "Approximating the endpoint of nested sampling"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "numpy",
+    "scipy",
+    "anesthetic"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/zixiao-h/aeons/tree/dev"
+Issues = "https://github.com/zixiao-h/aeons/tree/dev/issues"
+
+[project.optional-dependencies]
+test = ["pytest"]
